@@ -8,23 +8,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import veyronLogo from "@/assets/veyron-logo.png";
 
-const phoneSchema = z.string().regex(/^01[0-2,5]{1}[0-9]{8}$/, "رقم الهاتف غير صحيح");
+const emailSchema = z.string().email("البريد الإلكتروني غير صحيح");
 const passwordSchema = z.string().min(6, "كلمة السر يجب أن تكون 6 أحرف على الأقل");
 
 const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [signUpData, setSignUpData] = useState({ phone: "", password: "", confirmPassword: "" });
-  const [signInData, setSignInData] = useState({ phone: "", password: "" });
+  const [signUpData, setSignUpData] = useState({ email: "", password: "", confirmPassword: "" });
+  const [signInData, setSignInData] = useState({ email: "", password: "" });
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // التحقق من صحة البيانات
-      phoneSchema.parse(signUpData.phone);
+      emailSchema.parse(signUpData.email);
       passwordSchema.parse(signUpData.password);
 
       if (signUpData.password !== signUpData.confirmPassword) {
@@ -33,29 +33,23 @@ const Auth = () => {
         return;
       }
 
-      // إنشاء بريد إلكتروني وهمي من رقم الهاتف
-      const email = `${signUpData.phone}@veyron-store.local`;
-
       const { error } = await supabase.auth.signUp({
-        email,
+        email: signUpData.email,
         password: signUpData.password,
         options: {
-          data: {
-            phone: signUpData.phone,
-          },
           emailRedirectTo: `${window.location.origin}/`,
         },
       });
 
       if (error) {
         if (error.message.includes("already registered")) {
-          toast.error("رقم الهاتف مسجل بالفعل");
+          toast.error("البريد الإلكتروني مسجل بالفعل");
         } else {
           toast.error(error.message);
         }
       } else {
         toast.success("تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول");
-        setSignUpData({ phone: "", password: "", confirmPassword: "" });
+        setSignUpData({ email: "", password: "", confirmPassword: "" });
       }
     } catch (error: any) {
       toast.error(error.message || "حدث خطأ أثناء التسجيل");
@@ -69,18 +63,16 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      phoneSchema.parse(signInData.phone);
+      emailSchema.parse(signInData.email);
       passwordSchema.parse(signInData.password);
 
-      const email = `${signInData.phone}@veyron-store.local`;
-
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: signInData.email,
         password: signInData.password,
       });
 
       if (error) {
-        toast.error("رقم الهاتف أو كلمة السر غير صحيحة");
+        toast.error("البريد الإلكتروني أو كلمة السر غير صحيحة");
       } else {
         toast.success("تم تسجيل الدخول بنجاح");
         navigate("/");
@@ -93,21 +85,33 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 gradient-ice">
-      <div className="w-full max-w-md animate-scale-in">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-accent/10 animate-gradient"></div>
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/30 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/30 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+      </div>
+      
+      <div className="w-full max-w-md animate-scale-in relative z-10">
         <div className="text-center mb-8">
-          <div className="w-20 h-20 rounded-full bg-gradient-dark flex items-center justify-center mx-auto mb-4 animate-float">
-            <span className="text-4xl font-bold text-primary-foreground">V</span>
+          <div className="relative inline-block mb-6">
+            <div className="absolute inset-0 bg-gradient-dark rounded-full blur-xl animate-pulse"></div>
+            <img 
+              src={veyronLogo} 
+              alt="Veyron Logo" 
+              className="relative w-32 h-32 rounded-full object-cover border-4 border-primary/30 shadow-luxury animate-float"
+            />
           </div>
-          <h1 className="text-4xl font-bold mb-2">Veyron</h1>
-          <p className="text-muted-foreground">اللبس القوة، وحس بالفخامة</p>
+          <h1 className="text-5xl font-bold mb-3 bg-gradient-dark bg-clip-text text-transparent animate-fade-in">Veyron</h1>
+          <p className="text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>اللبس القوة، وحس بالفخامة</p>
         </div>
 
-        <Card className="shadow-luxury">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">مرحباً بك</CardTitle>
-            <CardDescription className="text-center">
-              سجل دخولك أو أنشئ حساب جديد
+        <Card className="shadow-luxury backdrop-blur-xl bg-card/80 border-primary/20 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-3xl text-center font-bold bg-gradient-dark bg-clip-text text-transparent">مرحباً بك</CardTitle>
+            <CardDescription className="text-center text-base">
+              سجل دخولك أو أنشئ حساب جديد للاستمتاع بتجربة Veyron الفاخرة
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -118,72 +122,88 @@ const Auth = () => {
               </TabsList>
 
               <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
+                <form onSubmit={handleSignIn} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-phone">رقم الهاتف</Label>
+                    <Label htmlFor="signin-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                     <Input
-                      id="signin-phone"
-                      type="tel"
-                      placeholder="01xxxxxxxxx"
-                      value={signInData.phone}
-                      onChange={(e) => setSignInData({ ...signInData, phone: e.target.value })}
+                      id="signin-email"
+                      type="email"
+                      placeholder="example@email.com"
+                      value={signInData.email}
+                      onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                       required
                       dir="ltr"
+                      className="h-11 transition-all focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">كلمة السر</Label>
+                    <Label htmlFor="signin-password" className="text-sm font-medium">كلمة السر</Label>
                     <Input
                       id="signin-password"
                       type="password"
+                      placeholder="••••••••"
                       value={signInData.password}
                       onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                       required
+                      className="h-11 transition-all focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]" 
+                    disabled={isLoading}
+                  >
                     {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
                   </Button>
                 </form>
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
+                <form onSubmit={handleSignUp} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-phone">رقم الهاتف</Label>
+                    <Label htmlFor="signup-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                     <Input
-                      id="signup-phone"
-                      type="tel"
-                      placeholder="01xxxxxxxxx"
-                      value={signUpData.phone}
-                      onChange={(e) => setSignUpData({ ...signUpData, phone: e.target.value })}
+                      id="signup-email"
+                      type="email"
+                      placeholder="example@email.com"
+                      value={signUpData.email}
+                      onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
                       required
                       dir="ltr"
+                      className="h-11 transition-all focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">كلمة السر</Label>
+                    <Label htmlFor="signup-password" className="text-sm font-medium">كلمة السر</Label>
                     <Input
                       id="signup-password"
                       type="password"
+                      placeholder="••••••••"
                       value={signUpData.password}
                       onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                       required
+                      className="h-11 transition-all focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">تأكيد كلمة السر</Label>
+                    <Label htmlFor="signup-confirm" className="text-sm font-medium">تأكيد كلمة السر</Label>
                     <Input
                       id="signup-confirm"
                       type="password"
+                      placeholder="••••••••"
                       value={signUpData.confirmPassword}
                       onChange={(e) =>
                         setSignUpData({ ...signUpData, confirmPassword: e.target.value })
                       }
                       required
+                      className="h-11 transition-all focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]" 
+                    disabled={isLoading}
+                  >
                     {isLoading ? "جاري إنشاء الحساب..." : "إنشاء حساب"}
                   </Button>
                 </form>
