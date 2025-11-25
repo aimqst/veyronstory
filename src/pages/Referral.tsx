@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Share2, Users, Gift } from "lucide-react";
+import { Copy, Users, Gift } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 
 type Referral = {
@@ -108,30 +108,6 @@ const Referral = () => {
   const handleCopyCoupon = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success("تم نسخ كود الخصم");
-  };
-
-  const getReferralLink = () => {
-    return `${window.location.origin}?ref=${referralCode}`;
-  };
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(getReferralLink());
-    toast.success("تم نسخ رابط الإحالة");
-  };
-
-  const handleShare = async () => {
-    const text = `انضم إلي في Veyron Story واحصل على خصم 15%! استخدم كود الإحالة: ${referralCode}`;
-    const url = getReferralLink();
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Veyron Story", text, url });
-      } catch (error) {
-        handleCopyLink();
-      }
-    } else {
-      handleCopyLink();
-    }
   };
 
   const successfulReferrals = referrals.filter((r) => r.used).length;
