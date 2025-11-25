@@ -23,15 +23,15 @@ All colors MUST be HSL.
     --primary: 0 0% 8%;
     --primary-foreground: 0 0% 98%;
 
-    /* الجليدي الفاخر */
-    --secondary: 195 40% 96%;
+    /* الجليدي الفاخر - أزرق جليدي */
+    --secondary: 205 55% 94%;
     --secondary-foreground: 0 0% 8%;
 
-    --muted: 195 30% 95%;
+    --muted: 205 45% 92%;
     --muted-foreground: 0 0% 40%;
 
     /* لون مميز للعناصر التفاعلية */
-    --accent: 195 45% 92%;
+    --accent: 210 60% 88%;
     --accent-foreground: 0 0% 8%;
 
     --destructive: 0 84% 60%;
@@ -44,9 +44,10 @@ All colors MUST be HSL.
     --radius: 0.75rem;
 
     /* تدرجات فاخرة */
-    --gradient-luxury: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(195 40% 96%) 100%);
+    --gradient-luxury: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(205 55% 94%) 100%);
     --gradient-dark: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(0 0% 15%) 100%);
-    --gradient-ice: linear-gradient(135deg, hsl(195 50% 98%) 0%, hsl(195 40% 92%) 100%);
+    --gradient-ice: linear-gradient(135deg, hsl(210 65% 96%) 0%, hsl(205 50% 88%) 100%);
+    --gradient-animated: linear-gradient(270deg, hsl(210 60% 92%), hsl(205 50% 88%), hsl(200 45% 85%));
     
     /* ظلال فاخرة */
     --shadow-luxury: 0 20px 60px -15px hsla(0, 0%, 0%, 0.1);
@@ -80,13 +81,13 @@ All colors MUST be HSL.
     --primary: 0 0% 98%;
     --primary-foreground: 0 0% 8%;
 
-    --secondary: 195 20% 15%;
+    --secondary: 205 30% 18%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 195 30% 20%;
+    --accent: 210 35% 22%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62% 45%;
@@ -172,12 +173,31 @@ All colors MUST be HSL.
     background: var(--gradient-ice);
   }
 
+  .gradient-animated {
+    background: var(--gradient-animated);
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+
   .shadow-luxury {
     box-shadow: var(--shadow-luxury);
   }
 
   .shadow-card {
     box-shadow: var(--shadow-card);
+  }
+
+  .hover-glow {
+    @apply transition-all duration-500 ease-out;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 30px hsla(210, 60%, 70%, 0.4), 0 0 60px hsla(210, 60%, 70%, 0.2);
+    transform: translateY(-12px) scale(1.02);
+  }
+
+  .pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }
 

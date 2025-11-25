@@ -33,7 +33,7 @@ const Auth = () => {
         return;
       }
 
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: signUpData.email,
         password: signUpData.password,
         options: {
@@ -48,7 +48,13 @@ const Auth = () => {
           toast.error(error.message);
         }
       } else {
-        toast.success("تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول");
+        // تسجيل الدخول تلقائياً بعد إنشاء الحساب
+        if (data.session) {
+          toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح!");
+          navigate("/");
+        } else {
+          toast.success("تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول");
+        }
         setSignUpData({ email: "", password: "", confirmPassword: "" });
       }
     } catch (error: any) {
