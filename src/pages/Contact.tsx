@@ -75,29 +75,15 @@ const Contact = () => {
               </div>
               <div>
                 <h2 className="text-3xl font-bold mb-4">التواصل الهاتفي</h2>
-                <div className="space-y-4">
-                  <div className="p-4 rounded-lg bg-secondary/50">
-                    <p className="text-sm text-muted-foreground mb-2">تواصل مع صاحب البراند</p>
-                    <a
-                      href="tel:01147124165"
-                      className="text-2xl font-bold hover:text-primary transition-colors"
-                      dir="ltr"
-                    >
-                      01147124165
-                    </a>
-                  </div>
-                  <div className="p-4 rounded-lg bg-secondary/50">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      تواصل مع مصمم الويب سايت (للمزيد من الفرص)
-                    </p>
-                    <a
-                      href="tel:01147124165"
-                      className="text-2xl font-bold hover:text-primary transition-colors"
-                      dir="ltr"
-                    >
-                      01147124165
-                    </a>
-                  </div>
+                <div className="p-4 rounded-lg bg-secondary/50 hover-scale">
+                  <p className="text-sm text-muted-foreground mb-2">تواصل مع صاحب البراند</p>
+                  <a
+                    href="tel:01147124165"
+                    className="text-2xl font-bold hover:text-primary transition-colors"
+                    dir="ltr"
+                  >
+                    01147124165
+                  </a>
                 </div>
               </div>
             </div>
