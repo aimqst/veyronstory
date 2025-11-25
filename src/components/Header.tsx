@@ -109,6 +109,14 @@ const Header = () => {
                 >
                   دعوة الأصدقاء
                 </Link>
+                <Link
+                  to="/how-it-works"
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    isActive("/how-it-works") ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  كيف يعمل؟
+                </Link>
                 {isAdmin && (
                   <>
                     <Button
