@@ -383,6 +383,9 @@ const Admin = () => {
 
         {/* Quick Links */}
         <div className="flex flex-wrap justify-center gap-3 mb-8">
+          <Button onClick={() => navigate("/admin/statistics")} variant="default">
+            الإحصائيات
+          </Button>
           <Button onClick={() => navigate("/admin/coupons")} variant="outline">
             إدارة الكوبونات
           </Button>
