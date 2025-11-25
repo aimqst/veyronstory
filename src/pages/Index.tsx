@@ -142,9 +142,34 @@ const Index = () => {
 
       if (itemError) throw itemError;
 
+      // إنشاء رسالة واتساب
+      const whatsappMessage = `
+🛍️ *طلب جديد من Veyron*
+
+📦 *بيانات المنتج:*
+المنتج: ${selectedProduct.name}
+السعر: ${finalPrice.toFixed(2)} ج.م
+مصاريف الشحن: ${shippingCost.toFixed(2)} ج.م
+الإجمالي: ${totalAmount.toFixed(2)} ج.م
+
+👤 *بيانات العميل:*
+البريد الإلكتروني: ${session.user.email}
+رقم الهاتف: ${orderData.phone}
+العنوان: ${orderData.address}
+${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
+
+🔢 *رقم الطلب:* ${order.id}
+      `.trim();
+
+      const whatsappUrl = `https://wa.me/201147124165?text=${encodeURIComponent(whatsappMessage)}`;
+
       toast.success(
         "تم إرسال الطلب بنجاح! سيتم التواصل معك قريباً. أنت ملزم بأخذ المنتج ودفع المبلغ."
       );
+      
+      // فتح واتساب
+      window.open(whatsappUrl, '_blank');
+      
       setOrderDialogOpen(false);
       setOrderData({ address: "", phone: "", notes: "" });
       setSelectedProduct(null);
@@ -180,7 +205,11 @@ const Index = () => {
               key={category}
               variant={selectedCategory === category ? "default" : "outline"}
               onClick={() => setSelectedCategory(category)}
-              className="text-lg px-6 py-6 hover-scale"
+              className={`text-lg px-6 py-6 hover-scale transition-all duration-300 ${
+                selectedCategory === category 
+                  ? 'shadow-luxury animate-pulse-slow' 
+                  : 'hover:shadow-card'
+              }`}
             >
               {category}
             </Button>
@@ -192,23 +221,24 @@ const Index = () => {
           {products.map((product, index) => (
             <Card
               key={product.id}
-              className="overflow-hidden shadow-card hover-lift animate-scale-in"
+              className="overflow-hidden shadow-card hover-glow animate-scale-in bg-gradient-to-br from-card to-accent/10 border-2 border-accent/20"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {product.image_url && (
-                <div className="relative aspect-square overflow-hidden">
+                <div className="relative aspect-square overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
                   <img
                     src={product.image_url}
                     alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-125 group-hover:rotate-2"
                   />
                   {product.discount_percentage > 0 && (
-                    <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-lg px-3 py-1">
+                    <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-lg px-3 py-1 animate-float shadow-luxury z-20">
                       خصم {product.discount_percentage}%
                     </Badge>
                   )}
                   {product.stock_quantity === 0 && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
                       <Badge className="text-xl px-4 py-2">غير متوفر</Badge>
                     </div>
                   )}
@@ -246,7 +276,7 @@ const Index = () => {
                 </p>
 
                 <Button
-                  className="w-full text-lg py-6"
+                  className="w-full text-lg py-6 hover-scale shadow-luxury hover:shadow-hover transition-all duration-300"
                   onClick={() => handleBuyClick(product)}
                   disabled={product.stock_quantity === 0}
                 >

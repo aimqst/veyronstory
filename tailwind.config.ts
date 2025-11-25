@@ -106,6 +106,7 @@ export default {
         "slide-in-right": "slide-in-right 0.6s ease-out",
         "float": "float 3s ease-in-out infinite",
         "gradient": "gradient 8s ease infinite",
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
     },
   },

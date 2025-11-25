@@ -1,0 +1,19 @@
+{
+  "name": "Veyron - العلامة الفاخرة للهوديز",
+  "short_name": "Veyron",
+  "description": "Veyron - العلامة الفاخرة للهوديز الشتوية بأعلى جودة",
+  "theme_color": "#0a0a0a",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/pwa-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
