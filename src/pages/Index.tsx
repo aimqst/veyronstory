@@ -367,13 +367,22 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
                   المتوفر: {product.stock_quantity} قطعة
                 </p>
 
-                <Button
-                  className="w-full text-lg py-6 hover-scale shadow-luxury hover:shadow-hover transition-all duration-300"
-                  onClick={() => handleBuyClick(product)}
-                  disabled={product.stock_quantity === 0}
-                >
-                  شراء الآن
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1 text-lg py-6 hover-scale shadow-luxury hover:shadow-hover transition-all duration-300"
+                    onClick={() => navigate(`/product/${product.id}`)}
+                    variant="outline"
+                  >
+                    عرض التفاصيل
+                  </Button>
+                  <Button
+                    className="flex-1 text-lg py-6 hover-scale shadow-luxury hover:shadow-hover transition-all duration-300"
+                    onClick={() => handleBuyClick(product)}
+                    disabled={product.stock_quantity === 0}
+                  >
+                    شراء الآن
+                  </Button>
+                </div>
               </div>
             </Card>
           ))}
