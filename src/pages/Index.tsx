@@ -56,7 +56,9 @@ const Index = () => {
     notes: "",
     selectedColor: "",
     selectedSize: "",
+    couponCode: "",
   });
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -133,10 +135,16 @@ const Index = () => {
       return;
     }
 
-    const finalPrice = calculateFinalPrice(
+    let finalPrice = calculateFinalPrice(
       selectedProduct.price,
       selectedProduct.discount_percentage
     );
+    
+    // Apply coupon discount
+    if (appliedDiscount > 0) {
+      finalPrice = finalPrice - (finalPrice * appliedDiscount / 100);
+    }
+    
     const shippingCost = finalPrice * 0.01;
     const totalAmount = finalPrice + shippingCost;
 
@@ -151,6 +159,7 @@ const Index = () => {
           delivery_address: orderData.address,
           phone: orderData.phone,
           notes: `${orderData.notes}${orderData.selectedColor ? `\nاللون: ${orderData.selectedColor}` : ''}${orderData.selectedSize ? `\nالمقاس: ${orderData.selectedSize}` : ''}`,
+          coupon_code: orderData.couponCode || null,
         })
         .select()
         .single();
@@ -168,6 +177,35 @@ const Index = () => {
       });
 
       if (itemError) throw itemError;
+
+      // Check if this user was referred and this is their first order
+      const { data: referralData } = await supabase
+        .from("referrals")
+        .select("*")
+        .eq("referred_id", session.user.id)
+        .eq("used", false)
+        .single();
+
+      if (referralData) {
+        // Mark referral as used
+        await supabase
+          .from("referrals")
+          .update({ used: true })
+          .eq("id", referralData.id);
+
+        // Create a 15% discount coupon for the referrer
+        const couponCode = `REF${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        
+        await supabase.from("discount_coupons").insert({
+          code: couponCode,
+          discount_percentage: 15,
+          max_uses: 1,
+          is_active: true,
+          created_by: referralData.referrer_id,
+        });
+
+        toast.success("🎉 صديقك الذي دعاك حصل على كوبون خصم 15%!");
+      }
 
       if (sendToWhatsApp) {
         const whatsappMessage = `
@@ -199,8 +237,9 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
       );
       
       setOrderDialogOpen(false);
-      setOrderData({ address: "", phone: "", notes: "", selectedColor: "", selectedSize: "" });
+      setOrderData({ address: "", phone: "", notes: "", selectedColor: "", selectedSize: "", couponCode: "" });
       setSelectedProduct(null);
+      setAppliedDiscount(0);
     } catch (error: any) {
       toast.error("حدث خطأ في إرسال الطلب");
     }
@@ -499,14 +538,84 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               />
             </div>
 
-            <div className="p-4 rounded-lg bg-accent/30 border border-accent">
-              <p className="text-sm font-semibold">طرق الدفع:</p>
-              <p className="text-sm" dir="ltr">
-                فودافون كاش: 01014491856
-              </p>
-              <p className="text-sm" dir="ltr">
-                إنستا باي: 01146202848
-              </p>
+            <div>
+              <Label htmlFor="coupon">كود الخصم (اختياري)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="coupon"
+                  placeholder="أدخل كود الخصم"
+                  value={orderData.couponCode}
+                  onChange={(e) =>
+                    setOrderData({ ...orderData, couponCode: e.target.value })
+                  }
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={async () => {
+                    if (!orderData.couponCode.trim()) {
+                      toast.error("أدخل كود الخصم أولاً");
+                      return;
+                    }
+                    
+                    const { data: coupon } = await supabase
+                      .from("discount_coupons")
+                      .select("*")
+                      .eq("code", orderData.couponCode.trim())
+                      .eq("is_active", true)
+                      .single();
+                    
+                    if (!coupon) {
+                      toast.error("كود الخصم غير صالح");
+                      return;
+                    }
+                    
+                    if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) {
+                      toast.error("تم استخدام هذا الكود الحد الأقصى من المرات");
+                      return;
+                    }
+                    
+                    setAppliedDiscount(coupon.discount_percentage);
+                    toast.success(`تم تطبيق خصم ${coupon.discount_percentage}%`);
+                  }}
+                >
+                  تطبيق
+                </Button>
+              </div>
+              {appliedDiscount > 0 && (
+                <p className="text-sm text-green-600 mt-1">
+                  ✓ تم تطبيق خصم {appliedDiscount}%
+                </p>
+              )}
+            </div>
+
+            <div className="p-4 rounded-lg bg-muted space-y-2">
+              <div className="flex justify-between">
+                <span>سعر المنتج:</span>
+                <span className="font-bold">
+                  {selectedProduct && calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage).toFixed(2)} ج.م
+                </span>
+              </div>
+              {appliedDiscount > 0 && selectedProduct && (
+                <div className="flex justify-between text-green-600">
+                  <span>خصم الكوبون ({appliedDiscount}%):</span>
+                  <span className="font-bold">
+                    -{(calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * appliedDiscount / 100).toFixed(2)} ج.م
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span>مصاريف الشحن (1%):</span>
+                <span className="font-bold">
+                  {selectedProduct && (calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * (1 - appliedDiscount / 100) * 0.01).toFixed(2)} ج.م
+                </span>
+              </div>
+              <div className="flex justify-between text-lg font-bold border-t pt-2">
+                <span>الإجمالي:</span>
+                <span>
+                  {selectedProduct && (calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * (1 - appliedDiscount / 100) * 1.01).toFixed(2)} ج.م
+                </span>
+              </div>
             </div>
 
             <p className="text-sm text-muted-foreground">
