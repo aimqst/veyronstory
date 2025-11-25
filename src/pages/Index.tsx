@@ -268,12 +268,15 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               >
                 <div className="flex flex-col md:flex-row items-center gap-6 p-6">
                   {banner.image_url && (
-                    <div className="w-full md:w-48 h-32 overflow-hidden rounded-lg flex-shrink-0">
+                    <div className="w-full md:w-48 h-32 overflow-hidden rounded-lg flex-shrink-0 bg-muted/30 relative">
                       <img
                         src={banner.image_url}
                         alt={banner.title}
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                     </div>
                   )}
@@ -328,27 +331,35 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               className="overflow-hidden shadow-card hover-glow animate-scale-in bg-gradient-to-br from-card to-accent/10 border-2 border-accent/20"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              {product.image_url && (
-                <div className="relative aspect-square overflow-hidden group">
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-                    referrerPolicy="no-referrer"
-                  />
-                  {product.discount_percentage > 0 && (
-                    <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-lg px-3 py-1 animate-float shadow-luxury z-20">
-                      خصم {product.discount_percentage}%
-                    </Badge>
-                  )}
-                  {product.stock_quantity === 0 && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
-                      <Badge className="text-xl px-4 py-2">غير متوفر</Badge>
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="relative aspect-square overflow-hidden group bg-muted/30">
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const parent = e.currentTarget.parentElement;
+                    if (parent && !parent.querySelector('.fallback-text')) {
+                      const fallback = document.createElement('div');
+                      fallback.className = 'fallback-text absolute inset-0 flex items-center justify-center text-muted-foreground text-lg font-semibold';
+                      fallback.textContent = product.name;
+                      parent.appendChild(fallback);
+                    }
+                  }}
+                />
+                {product.discount_percentage > 0 && (
+                  <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-lg px-3 py-1 animate-float shadow-luxury z-20">
+                    خصم {product.discount_percentage}%
+                  </Badge>
+                )}
+                {product.stock_quantity === 0 && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+                    <Badge className="text-xl px-4 py-2">غير متوفر</Badge>
+                  </div>
+                )}
+              </div>
 
               <div className="p-6 space-y-4">
                 <div>
