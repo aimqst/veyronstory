@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_config: {
+        Row: {
+          additional_info: string | null
+          age: number | null
+          created_at: string | null
+          id: string
+          name: string
+          personality: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          additional_info?: string | null
+          age?: number | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          personality?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          additional_info?: string | null
+          age?: number | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          personality?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ai_custom_data: {
+        Row: {
+          content: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           created_at: string

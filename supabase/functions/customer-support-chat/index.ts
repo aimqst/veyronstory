@@ -24,6 +24,19 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Get AI personality configuration
+    const { data: aiConfig } = await supabase
+      .from("ai_config")
+      .select("*")
+      .single();
+
+    // Get custom data added by admin
+    const { data: customData } = await supabase
+      .from("ai_custom_data")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+
     // Get all products with their details, ratings, comments, and likes
     const { data: products, error: productsError } = await supabase
       .from("products")
@@ -81,8 +94,16 @@ serve(async (req) => {
       return productInfo;
     }).join('\n\n') || 'لا توجد منتجات حالياً';
 
+    // Build custom data information
+    const customDataInfo = customData?.map(item => 
+      `**${item.title}**\n${item.content}`
+    ).join('\n\n') || '';
+
     // System prompt with all website information
-    const systemPrompt = `أنت موظف خدمة عملاء في متجر Veyron Story لبيع الهوديز والملابس الرياضية. مهمتك مساعدة العملاء والإجابة على استفساراتهم بطريقة منظمة وودودة.
+    const systemPrompt = `أنا ${aiConfig?.name || 'أحمد'}، عمري ${aiConfig?.age || 28} سنة، ${aiConfig?.personality || 'ودود ومحترف'}.
+${aiConfig?.additional_info || 'خبرة في مجال الموضة والملابس الرياضية'}
+
+أعمل في خدمة العملاء في متجر Veyron Story لبيع الهوديز والملابس الرياضية. مهمتي مساعدة العملاء والإجابة على استفساراتهم بطريقة منظمة وودودة.
 
 📍 **معلومات المتجر:**
 • الاسم: Veyron Story
@@ -108,6 +129,7 @@ serve(async (req) => {
 • **خدمة عملاء متميزة**: فريق دعم جاهز للرد على استفساراتك
 • **سهولة الطلب**: يمكنك الطلب من الموقع مباشرة أو عبر الواتساب
 
+${customDataInfo ? `📋 **معلومات إضافية:**\n${customDataInfo}\n` : ''}
 🛍️ **المنتجات المتاحة:**
 ${productsInfo}
 

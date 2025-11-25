@@ -372,6 +372,16 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-8 text-center">لوحة التحكم</h1>
 
+        {/* Quick Links */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
+          <Button onClick={() => navigate("/admin/coupons")} variant="outline">
+            إدارة الكوبونات
+          </Button>
+          <Button onClick={() => navigate("/admin/ai")} variant="outline">
+            إدارة الذكاء الاصطناعي
+          </Button>
+        </div>
+
         <Tabs defaultValue="products" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="products">المنتجات</TabsTrigger>
