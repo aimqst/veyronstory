@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import veyronLogo from "@/assets/veyron-logo.png";
+import InstallPWA from "./InstallPWA";
 
 const Header = () => {
   const location = useLocation();
@@ -95,6 +96,8 @@ const Header = () => {
             >
               التواصل
             </Link>
+
+            <InstallPWA />
 
             {session ? (
               <>
