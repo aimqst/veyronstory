@@ -10,7 +10,6 @@ import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import Developer from "./pages/Developer";
 import NotFound from "./pages/NotFound";
-import BackgroundMusic from "@/components/BackgroundMusic";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +19,6 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <BackgroundMusic />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
