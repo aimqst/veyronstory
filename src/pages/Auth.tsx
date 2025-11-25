@@ -54,24 +54,25 @@ const Auth = () => {
 
         // إذا كان هناك كود إحالة، تحقق منه وسجل الإحالة
         if (signUpData.referralCode) {
+          const trimmedCode = signUpData.referralCode.trim();
           const { data: referrerProfile } = await supabase
             .from("profiles")
             .select("id, referral_code")
-            .eq("referral_code", signUpData.referralCode)
+            .eq("referral_code", trimmedCode)
             .maybeSingle();
 
           if (referrerProfile) {
             // حفظ كود الإحالة في profile المستخدم الجديد
             await supabase
               .from("profiles")
-              .update({ used_referral_code: signUpData.referralCode })
+              .update({ used_referral_code: trimmedCode })
               .eq("id", data.user.id);
 
             // تسجيل الإحالة
             const { error: referralError } = await supabase.from("referrals").insert({
               referrer_id: referrerProfile.id,
               referred_id: data.user.id,
-              referral_code: signUpData.referralCode,
+              referral_code: trimmedCode,
               used: false,
             });
 
