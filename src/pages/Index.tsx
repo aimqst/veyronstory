@@ -268,16 +268,20 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               >
                 <div className="flex flex-col md:flex-row items-center gap-6 p-6">
                   {banner.image_url && (
-                    <img
-                      src={banner.image_url}
-                      alt={banner.title}
-                      className="w-full md:w-48 h-32 object-cover rounded-lg"
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
+                    <div className="w-full md:w-48 h-32 overflow-hidden rounded-lg bg-muted flex-shrink-0">
+                      <img
+                        src={banner.image_url}
+                        alt={banner.title}
+                        className="w-full h-full object-cover"
+                        loading="eager"
+                        decoding="async"
+                        crossOrigin="anonymous"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
                   )}
                   <div className="flex-1 text-center md:text-right">
                     <h2 className="text-3xl font-bold mb-2">{banner.title}</h2>
@@ -331,7 +335,7 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {product.image_url && (
-                <div className="relative aspect-square overflow-hidden group">
+                <div className="relative aspect-square overflow-hidden group bg-muted">
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
                   <img
                     src={product.image_url}
@@ -339,8 +343,12 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                     loading="lazy"
                     decoding="async"
+                    crossOrigin="anonymous"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://via.placeholder.com/400x400?text=No+Image';
+                      const target = e.currentTarget;
+                      target.src = '/placeholder.svg';
+                      target.style.objectFit = 'contain';
+                      target.onerror = null;
                     }}
                   />
                   {product.discount_percentage > 0 && (
@@ -438,8 +446,8 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
 
       {/* Dialog للطلب */}
       <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-2xl">إتمام الطلب</DialogTitle>
             <DialogDescription>
               {selectedProduct && (
@@ -469,7 +477,7 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 px-1">
             {selectedProduct?.colors && selectedProduct.colors.length > 0 && (
               <div>
                 <Label htmlFor="color">اختر اللون *</Label>

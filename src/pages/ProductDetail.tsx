@@ -64,7 +64,6 @@ const ProductDetail = () => {
     selectedColor: "",
     selectedSize: "",
     couponCode: "",
-    referralCode: "",
   });
   const [appliedDiscount, setAppliedDiscount] = useState(0);
 
@@ -360,7 +359,6 @@ const ProductDetail = () => {
         shipping_cost: shippingCost,
         final_amount: finalAmount,
         coupon_code: orderData.couponCode || null,
-        referral_code: orderData.referralCode || null,
         status: "pending",
       })
       .select()
@@ -440,7 +438,6 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ""}`;
       selectedColor: "",
       selectedSize: "",
       couponCode: "",
-      referralCode: "",
     });
     setAppliedDiscount(0);
   };
@@ -473,14 +470,29 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ""}`;
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* صورة المنتج */}
-          <div className="relative">
-            <img
-              src={product.image_url || "/placeholder.svg"}
-              alt={product.name}
-              className="w-full h-auto rounded-lg shadow-card"
-              loading="lazy"
-              style={{ imageRendering: 'auto' }}
-            />
+            <div className="relative aspect-square overflow-hidden group bg-muted">
+              {product.image_url ? (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                    loading="eager"
+                    decoding="async"
+                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.src = '/placeholder.svg';
+                      target.style.objectFit = 'contain';
+                    }}
+                  />
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-muted">
+                  <span className="text-muted-foreground">لا توجد صورة</span>
+                </div>
+              )}
             {product.discount_percentage > 0 && (
               <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground">
                 خصم {product.discount_percentage}%
@@ -692,15 +704,15 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ""}`;
 
       {/* نافذة تأكيد الطلب */}
       <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>تأكيد الطلب - {product.name}</DialogTitle>
             <DialogDescription>
               يرجى ملء البيانات التالية لإتمام الطلب
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 mt-4">
+          <div className="space-y-4 mt-4 overflow-y-auto flex-1 px-1">
             <div>
               <Label htmlFor="address">عنوان التوصيل *</Label>
               <Textarea
@@ -829,21 +841,6 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ""}`;
                   ✓ تم تطبيق خصم {appliedDiscount}%
                 </p>
               )}
-            </div>
-
-            <div>
-              <Label htmlFor="referral">كود الإحالة (اختياري)</Label>
-              <Input
-                id="referral"
-                placeholder="أدخل كود إحالة صديقك"
-                value={orderData.referralCode}
-                onChange={(e) =>
-                  setOrderData({ ...orderData, referralCode: e.target.value })
-                }
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                إذا كان لديك كود إحالة من صديق، أدخله هنا
-              </p>
             </div>
 
             <div className="bg-muted p-4 rounded-lg space-y-2">
