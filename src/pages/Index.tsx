@@ -302,11 +302,11 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
           {categories.map((category) => (
             <Button
               key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
+              variant={selectedCategory === category ? "secondary" : "outline"}
               onClick={() => setSelectedCategory(category)}
               className={`text-lg px-6 py-6 hover-scale transition-all duration-300 ${
                 selectedCategory === category 
-                  ? 'bg-gradient-ice shadow-luxury' 
+                  ? 'bg-gradient-ice shadow-luxury text-foreground font-bold' 
                   : 'hover:shadow-card'
               }`}
             >
