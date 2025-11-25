@@ -470,29 +470,14 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ""}`;
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* صورة المنتج */}
-            <div className="relative aspect-square overflow-hidden group bg-muted">
-              {product.image_url ? (
-                <>
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-                    loading="eager"
-                    decoding="async"
-                    crossOrigin="anonymous"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.src = '/placeholder.svg';
-                      target.style.objectFit = 'contain';
-                    }}
-                  />
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-muted">
-                  <span className="text-muted-foreground">لا توجد صورة</span>
-                </div>
-              )}
+            <div className="relative aspect-square overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                referrerPolicy="no-referrer"
+              />
             {product.discount_percentage > 0 && (
               <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground">
                 خصم {product.discount_percentage}%

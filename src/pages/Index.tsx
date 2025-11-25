@@ -268,18 +268,12 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               >
                 <div className="flex flex-col md:flex-row items-center gap-6 p-6">
                   {banner.image_url && (
-                    <div className="w-full md:w-48 h-32 overflow-hidden rounded-lg bg-muted flex-shrink-0">
+                    <div className="w-full md:w-48 h-32 overflow-hidden rounded-lg flex-shrink-0">
                       <img
                         src={banner.image_url}
                         alt={banner.title}
                         className="w-full h-full object-cover"
-                        loading="eager"
-                        decoding="async"
-                        crossOrigin="anonymous"
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          target.style.display = 'none';
-                        }}
+                        referrerPolicy="no-referrer"
                       />
                     </div>
                   )}
@@ -335,21 +329,13 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {product.image_url && (
-                <div className="relative aspect-square overflow-hidden group bg-muted">
+                <div className="relative aspect-square overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
                   <img
                     src={product.image_url}
                     alt={product.name}
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-                    loading="lazy"
-                    decoding="async"
-                    crossOrigin="anonymous"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.src = '/placeholder.svg';
-                      target.style.objectFit = 'contain';
-                      target.onerror = null;
-                    }}
+                    referrerPolicy="no-referrer"
                   />
                   {product.discount_percentage > 0 && (
                     <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-lg px-3 py-1 animate-float shadow-luxury z-20">
