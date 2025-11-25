@@ -52,10 +52,11 @@ const InstallPWA = () => {
     <Button
       onClick={handleInstall}
       variant="default"
-      className="hover-scale shadow-luxury animate-pulse-slow"
+      size="sm"
+      className="w-full justify-start gap-3 text-base h-12 hover-scale shadow-luxury bg-gradient-to-r from-primary to-primary/80"
     >
-      <Download className="ml-2 h-5 w-5" />
-      حمّل التطبيق
+      <Download className="h-5 w-5" />
+      حمّل التطبيق على هاتفك
     </Button>
   );
 };
