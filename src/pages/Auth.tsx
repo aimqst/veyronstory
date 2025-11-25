@@ -17,7 +17,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [signUpData, setSignUpData] = useState({ email: "", password: "", confirmPassword: "", referralCode: "" });
+  const [signUpData, setSignUpData] = useState({ email: "", password: "", confirmPassword: "" });
   const [signInData, setSignInData] = useState({ email: "", password: "" });
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -49,51 +49,14 @@ const Auth = () => {
           toast.error(error.message);
         }
       } else if (data.user) {
-        // انتظر قليلاً حتى يتم إنشاء الـ profile بواسطة الـ trigger
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // إذا كان هناك كود إحالة، تحقق منه وسجل الإحالة
-        if (signUpData.referralCode) {
-          const trimmedCode = signUpData.referralCode.trim();
-          const { data: referrerProfile } = await supabase
-            .from("profiles")
-            .select("id, referral_code")
-            .eq("referral_code", trimmedCode)
-            .maybeSingle();
-
-          if (referrerProfile) {
-            // حفظ كود الإحالة في profile المستخدم الجديد
-            await supabase
-              .from("profiles")
-              .update({ used_referral_code: trimmedCode })
-              .eq("id", data.user.id);
-
-            // تسجيل الإحالة
-            const { error: referralError } = await supabase.from("referrals").insert({
-              referrer_id: referrerProfile.id,
-              referred_id: data.user.id,
-              referral_code: trimmedCode,
-              used: false,
-            });
-
-            if (!referralError) {
-              toast.success("تم تسجيلك بنجاح! ستحصل أنت وصديقك على خصومات عند الشراء والتسليم");
-            }
-          } else {
-            toast.error("كود الإحالة غير صحيح");
-          }
-        }
-
         // تسجيل الدخول تلقائياً بعد إنشاء الحساب
         if (data.session) {
-          if (!signUpData.referralCode) {
-            toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح!");
-          }
+          toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح!");
           navigate("/");
         } else {
           toast.success("تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول");
         }
-        setSignUpData({ email: "", password: "", confirmPassword: "", referralCode: "" });
+        setSignUpData({ email: "", password: "", confirmPassword: "" });
       }
     } catch (error: any) {
       toast.error(error.message || "حدث خطأ أثناء التسجيل");
@@ -243,23 +206,7 @@ const Auth = () => {
                       className="h-11 transition-all focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-referral" className="text-sm font-medium">كود الإحالة (اختياري)</Label>
-                    <Input
-                      id="signup-referral"
-                      type="text"
-                      placeholder="أدخل كود الإحالة إن وجد"
-                      value={signUpData.referralCode}
-                      onChange={(e) =>
-                        setSignUpData({ ...signUpData, referralCode: e.target.value.toUpperCase() })
-                      }
-                      className="h-11 transition-all focus:ring-2 focus:ring-primary/50 font-mono"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      إذا كان لديك كود دعوة من صديق، أدخله هنا للحصول على خصومات
-                    </p>
-                  </div>
-                  <Button 
+                  <Button
                     type="submit" 
                     className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]" 
                     disabled={isLoading}
