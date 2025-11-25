@@ -389,6 +389,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           referral_code: string | null
+          referral_discount_percentage: number | null
           updated_at: string
         }
         Insert: {
@@ -398,6 +399,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           referral_code?: string | null
+          referral_discount_percentage?: number | null
           updated_at?: string
         }
         Update: {
@@ -407,6 +409,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           referral_code?: string | null
+          referral_discount_percentage?: number | null
           updated_at?: string
         }
         Relationships: []

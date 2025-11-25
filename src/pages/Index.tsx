@@ -59,6 +59,7 @@ const Index = () => {
     couponCode: "",
   });
   const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [referralDiscount, setReferralDiscount] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -111,7 +112,7 @@ const Index = () => {
     return price - (price * discount) / 100;
   };
 
-  const handleBuyClick = (product: Product) => {
+  const handleBuyClick = async (product: Product) => {
     if (!session) {
       toast.error("يرجى تسجيل الدخول أولاً");
       navigate("/auth");
@@ -121,6 +122,17 @@ const Index = () => {
     if (product.stock_quantity === 0) {
       toast.error("هذا المنتج غير متوفر حالياً");
       return;
+    }
+
+    // Load user's referral discount
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("referral_discount_percentage")
+      .eq("id", session.user.id)
+      .single();
+    
+    if (profileData?.referral_discount_percentage) {
+      setReferralDiscount(profileData.referral_discount_percentage);
     }
 
     setSelectedProduct(product);
@@ -139,6 +151,11 @@ const Index = () => {
       selectedProduct.price,
       selectedProduct.discount_percentage
     );
+    
+    // Apply referral discount automatically
+    if (referralDiscount > 0) {
+      finalPrice = finalPrice - (finalPrice * referralDiscount / 100);
+    }
     
     // Apply coupon discount
     if (appliedDiscount > 0) {
@@ -177,6 +194,14 @@ const Index = () => {
       });
 
       if (itemError) throw itemError;
+
+      // If user used referral discount, reset it to 0
+      if (referralDiscount > 0) {
+        await supabase
+          .from("profiles")
+          .update({ referral_discount_percentage: 0 })
+          .eq("id", session.user.id);
+      }
 
       // Get user's profile to check for referral code
       const { data: profileData } = await supabase
@@ -237,6 +262,7 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
       setOrderData({ address: "", phone: "", notes: "", selectedColor: "", selectedSize: "", couponCode: "" });
       setSelectedProduct(null);
       setAppliedDiscount(0);
+      setReferralDiscount(0);
     } catch (error: any) {
       toast.error("حدث خطأ في إرسال الطلب");
     }
@@ -593,24 +619,32 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
                   {selectedProduct && calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage).toFixed(2)} ج.م
                 </span>
               </div>
+              {referralDiscount > 0 && selectedProduct && (
+                <div className="flex justify-between text-blue-600">
+                  <span>🎁 خصم الإحالة ({referralDiscount}%):</span>
+                  <span className="font-bold">
+                    -{(calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * referralDiscount / 100).toFixed(2)} ج.م
+                  </span>
+                </div>
+              )}
               {appliedDiscount > 0 && selectedProduct && (
                 <div className="flex justify-between text-green-600">
                   <span>خصم الكوبون ({appliedDiscount}%):</span>
                   <span className="font-bold">
-                    -{(calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * appliedDiscount / 100).toFixed(2)} ج.م
+                    -{(calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * (1 - referralDiscount / 100) * appliedDiscount / 100).toFixed(2)} ج.م
                   </span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>مصاريف الشحن (1%):</span>
                 <span className="font-bold">
-                  {selectedProduct && (calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * (1 - appliedDiscount / 100) * 0.01).toFixed(2)} ج.م
+                  {selectedProduct && (calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * (1 - referralDiscount / 100) * (1 - appliedDiscount / 100) * 0.01).toFixed(2)} ج.م
                 </span>
               </div>
               <div className="flex justify-between text-lg font-bold border-t pt-2">
                 <span>الإجمالي:</span>
                 <span>
-                  {selectedProduct && (calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * (1 - appliedDiscount / 100) * 1.01).toFixed(2)} ج.م
+                  {selectedProduct && (calculateFinalPrice(selectedProduct.price, selectedProduct.discount_percentage) * (1 - referralDiscount / 100) * (1 - appliedDiscount / 100) * 1.01).toFixed(2)} ج.م
                 </span>
               </div>
             </div>
