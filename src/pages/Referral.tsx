@@ -16,11 +16,23 @@ type Referral = {
   created_at: string;
 };
 
+type Coupon = {
+  id: string;
+  code: string;
+  discount_percentage: number;
+  max_uses: number;
+  current_uses: number;
+  is_active: boolean;
+  valid_until: string | null;
+  created_at: string;
+};
+
 const Referral = () => {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [referralCode, setReferralCode] = useState("");
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,6 +50,7 @@ const Referral = () => {
     setSession(session);
     await loadReferralCode(session.user.id);
     await loadReferrals(session.user.id);
+    await loadCoupons(session.user.id);
     setLoading(false);
   };
 
@@ -63,6 +76,24 @@ const Referral = () => {
     if (!error && data) {
       setReferrals(data);
     }
+  };
+
+  const loadCoupons = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("discount_coupons")
+      .select("*")
+      .eq("created_by", userId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setCoupons(data);
+    }
+  };
+
+  const handleCopyCoupon = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast.success("تم نسخ كود الخصم");
   };
 
   const getReferralLink = () => {
@@ -157,6 +188,68 @@ const Referral = () => {
             </div>
           </div>
         </Card>
+
+        {/* الكوبونات المتاحة */}
+        {coupons.length > 0 && (
+          <Card className="p-8 mb-8">
+            <h2 className="text-2xl font-bold mb-6 text-center">🎁 كوبونات الخصم المتاحة لك</h2>
+            <div className="space-y-4">
+              {coupons.map((coupon) => {
+                const isUsed = coupon.current_uses >= (coupon.max_uses || Infinity);
+                return (
+                  <div
+                    key={coupon.id}
+                    className={`p-6 rounded-lg border-2 ${
+                      isUsed ? "bg-muted/30 border-muted" : "bg-primary/5 border-primary"
+                    }`}
+                  >
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-2xl font-bold font-mono">{coupon.code}</span>
+                          {!isUsed && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCopyCoupon(coupon.code)}
+                            >
+                              <Copy className="w-4 h-4 ml-2" />
+                              نسخ
+                            </Button>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-3 text-sm">
+                          <span className="text-green-600 font-bold">
+                            خصم {coupon.discount_percentage}%
+                          </span>
+                          <span className="text-muted-foreground">
+                            الاستخدام: {coupon.current_uses} / {coupon.max_uses || "∞"}
+                          </span>
+                          {coupon.valid_until && (
+                            <span className="text-muted-foreground">
+                              صالح حتى: {new Date(coupon.valid_until).toLocaleDateString("ar-EG")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        {isUsed ? (
+                          <span className="px-4 py-2 bg-muted text-muted-foreground rounded-full text-sm font-medium">
+                            مستخدم
+                          </span>
+                        ) : (
+                          <span className="px-4 py-2 bg-green-500/20 text-green-600 rounded-full text-sm font-medium">
+                            متاح
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        )}
 
         {/* كيف يعمل */}
         <Card className="p-8 mb-8">
