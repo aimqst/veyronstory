@@ -1,9 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Facebook, Instagram, MessageCircle } from "lucide-react";
+import { Phone, Facebook, Instagram, MessageCircle, Code } from "lucide-react";
 
 const Contact = () => {
+  const navigate = useNavigate();
   const contacts = [
     {
       icon: <MessageCircle className="w-8 h-8" />,
@@ -124,6 +126,18 @@ const Contact = () => {
               </p>
             </div>
           </Card>
+
+          {/* زر تواصل مع المطور */}
+          <div className="text-center animate-fade-in" style={{ animationDelay: "0.5s" }}>
+            <Button
+              onClick={() => navigate("/developer")}
+              size="lg"
+              className="text-lg px-8 py-6 hover-scale shadow-luxury hover:shadow-hover transition-all bg-gradient-to-r from-primary to-accent"
+            >
+              <Code className="ml-2 h-5 w-5" />
+              تواصل مع المطور
+            </Button>
+          </div>
         </div>
       </main>
     </div>
