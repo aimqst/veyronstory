@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash2, Edit, ArrowUp, ArrowDown } from "lucide-react";
+import { sendProductNotification, sendOfferNotification } from "@/utils/notifications";
 
 type Product = {
   id: string;
@@ -205,6 +206,10 @@ const Admin = () => {
         toast.error("حدث خطأ في إضافة المنتج");
       } else {
         toast.success("تم إضافة المنتج بنجاح");
+        
+        // Send notification to users about new product
+        sendProductNotification(productForm.name, productForm.image_url);
+        
         resetProductForm();
         loadProducts();
       }
@@ -269,6 +274,10 @@ const Admin = () => {
         toast.error("حدث خطأ في إضافة العرض");
       } else {
         toast.success("تم إضافة العرض بنجاح");
+        
+        // Send notification to users about new offer
+        sendOfferNotification(bannerForm.title, bannerForm.description);
+        
         resetBannerForm();
         loadBanners();
       }

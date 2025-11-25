@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { CustomerSupportChat } from "@/components/CustomerSupportChat";
+import { NotificationPrompt } from "@/components/NotificationPrompt";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -253,6 +254,7 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <NotificationPrompt />
 
       <main className="container mx-auto px-4 py-12">
         {/* بانر العروض */}

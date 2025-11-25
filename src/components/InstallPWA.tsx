@@ -46,17 +46,28 @@ const InstallPWA = () => {
     setIsInstallable(false);
   };
 
-  if (!isInstallable) return null;
+  if (!isInstallable) {
+    return (
+      <div className="w-full p-3 bg-gradient-to-r from-primary to-primary/80 rounded-lg text-center">
+        <p className="text-primary-foreground text-sm font-medium">
+          💡 يمكنك تثبيت التطبيق على هاتفك للوصول السريع
+        </p>
+        <p className="text-primary-foreground/80 text-xs mt-1">
+          iOS: اضغط زر المشاركة → "Add to Home Screen"
+        </p>
+      </div>
+    );
+  }
 
   return (
     <Button
       onClick={handleInstall}
       variant="default"
       size="sm"
-      className="w-full justify-start gap-3 text-base h-12 hover-scale shadow-luxury bg-gradient-to-r from-primary to-primary/80"
+      className="w-full justify-start gap-3 text-base h-12 hover-scale shadow-luxury bg-gradient-to-r from-primary to-primary/80 animate-pulse"
     >
       <Download className="h-5 w-5" />
-      حمّل التطبيق على هاتفك
+      🎉 حمّل التطبيق الآن على هاتفك
     </Button>
   );
 };
