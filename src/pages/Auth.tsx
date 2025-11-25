@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,9 +15,19 @@ const passwordSchema = z.string().min(6, "كلمة السر يجب أن تكون
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [signUpData, setSignUpData] = useState({ email: "", password: "", confirmPassword: "" });
   const [signInData, setSignInData] = useState({ email: "", password: "" });
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      setReferralCode(ref);
+      toast.info(`سيتم تسجيلك عن طريق دعوة من صديقك! ستحصل على خصم خاص عند أول عملية شراء`);
+    }
+  }, [searchParams]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +58,25 @@ const Auth = () => {
           toast.error(error.message);
         }
       } else {
+        // إذا كان هناك كود إحالة، سجل الإحالة
+        if (referralCode && data.user) {
+          const { data: referrerProfile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("referral_code", referralCode)
+            .single();
+
+          if (referrerProfile) {
+            await supabase.from("referrals").insert({
+              referrer_id: referrerProfile.id,
+              referred_id: data.user.id,
+              referral_code: referralCode,
+              used: false,
+            });
+            toast.success("تم تسجيلك عن طريق دعوة صديقك! ستحصلان على خصومات عند أول عملية شراء");
+          }
+        }
+
         // تسجيل الدخول تلقائياً بعد إنشاء الحساب
         if (data.session) {
           toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح!");
@@ -166,6 +195,13 @@ const Auth = () => {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-5">
+                  {referralCode && (
+                    <div className="bg-primary/10 p-3 rounded-lg text-center">
+                      <p className="text-sm font-medium text-primary">
+                        🎉 تم الدعوة بواسطة صديقك! ستحصل على خصم خاص
+                      </p>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="signup-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                     <Input

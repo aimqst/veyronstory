@@ -386,6 +386,35 @@ const ProductDetail = () => {
       return;
     }
 
+    // Check if this user was referred and this is their first order
+    const { data: referralData } = await supabase
+      .from("referrals")
+      .select("*")
+      .eq("referred_id", session.user.id)
+      .eq("used", false)
+      .single();
+
+    if (referralData) {
+      // Mark referral as used
+      await supabase
+        .from("referrals")
+        .update({ used: true })
+        .eq("id", referralData.id);
+
+      // Create a 15% discount coupon for the referrer
+      const couponCode = `REF${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      
+      await supabase.from("discount_coupons").insert({
+        code: couponCode,
+        discount_percentage: 15,
+        max_uses: 1,
+        is_active: true,
+        created_by: referralData.referrer_id,
+      });
+
+      toast.success("🎉 صديقك الذي دعاك حصل على كوبون خصم 15%!");
+    }
+
     if (sendToWhatsApp) {
       const message = `طلب جديد:
 المنتج: ${product.name}
