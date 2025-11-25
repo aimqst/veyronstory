@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      banners: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          link: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -110,6 +146,7 @@ export type Database = {
       products: {
         Row: {
           category: Database["public"]["Enums"]["product_category"]
+          colors: string[] | null
           created_at: string
           description: string | null
           discount_percentage: number | null
@@ -117,11 +154,13 @@ export type Database = {
           image_url: string | null
           name: string
           price: number
+          sizes: string[] | null
           stock_quantity: number
           updated_at: string
         }
         Insert: {
           category: Database["public"]["Enums"]["product_category"]
+          colors?: string[] | null
           created_at?: string
           description?: string | null
           discount_percentage?: number | null
@@ -129,11 +168,13 @@ export type Database = {
           image_url?: string | null
           name: string
           price: number
+          sizes?: string[] | null
           stock_quantity?: number
           updated_at?: string
         }
         Update: {
           category?: Database["public"]["Enums"]["product_category"]
+          colors?: string[] | null
           created_at?: string
           description?: string | null
           discount_percentage?: number | null
@@ -141,6 +182,7 @@ export type Database = {
           image_url?: string | null
           name?: string
           price?: number
+          sizes?: string[] | null
           stock_quantity?: number
           updated_at?: string
         }
@@ -210,7 +252,13 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       order_status: "pending" | "confirmed" | "delivered" | "cancelled"
-      product_category: "الكل" | "دفعة الظلام" | "دفعة النخبة" | "دفعة الحلال"
+      product_category:
+        | "الكل"
+        | "دفعة الظلام"
+        | "دفعة النخبة"
+        | "دفعة الحلال"
+        | "دفعة الأنمي"
+        | "دفعة TST"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -340,7 +388,14 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       order_status: ["pending", "confirmed", "delivered", "cancelled"],
-      product_category: ["الكل", "دفعة الظلام", "دفعة النخبة", "دفعة الحلال"],
+      product_category: [
+        "الكل",
+        "دفعة الظلام",
+        "دفعة النخبة",
+        "دفعة الحلال",
+        "دفعة الأنمي",
+        "دفعة TST",
+      ],
     },
   },
 } as const

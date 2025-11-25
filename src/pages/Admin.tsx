@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, ArrowUp, ArrowDown } from "lucide-react";
 
 type Product = {
   id: string;
@@ -28,6 +28,18 @@ type Product = {
   image_url: string;
   category: string;
   stock_quantity: number;
+  colors?: string[];
+  sizes?: string[];
+};
+
+type Banner = {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  link: string | null;
+  is_active: boolean;
+  display_order: number;
 };
 
 type Order = {
@@ -53,8 +65,10 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [productForm, setProductForm] = useState({
     name: "",
     description: "",
@@ -63,6 +77,15 @@ const Admin = () => {
     image_url: "",
     category: "الكل",
     stock_quantity: "0",
+    colors: "",
+    sizes: "",
+  });
+  const [bannerForm, setBannerForm] = useState({
+    title: "",
+    description: "",
+    image_url: "",
+    link: "",
+    is_active: true,
   });
 
   useEffect(() => {
@@ -96,6 +119,7 @@ const Admin = () => {
     setIsAdmin(true);
     setLoading(false);
     loadProducts();
+    loadBanners();
     loadOrders();
   };
 
@@ -106,6 +130,16 @@ const Admin = () => {
       toast.error("حدث خطأ في تحميل المنتجات");
     } else {
       setProducts(data || []);
+    }
+  };
+
+  const loadBanners = async () => {
+    const { data, error } = await supabase.from("banners").select("*").order("display_order");
+
+    if (error) {
+      toast.error("حدث خطأ في تحميل العروض");
+    } else {
+      setBanners(data || []);
     }
   };
 
@@ -134,14 +168,23 @@ const Admin = () => {
   const handleSubmitProduct = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const colorsArray = productForm.colors
+      ? productForm.colors.split(",").map((c) => c.trim()).filter(Boolean)
+      : [];
+    const sizesArray = productForm.sizes
+      ? productForm.sizes.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
     const productData = {
       name: productForm.name,
       description: productForm.description,
       price: parseFloat(productForm.price),
       discount_percentage: parseInt(productForm.discount_percentage),
       image_url: productForm.image_url,
-      category: productForm.category as "الكل" | "دفعة الظلام" | "دفعة النخبة" | "دفعة الحلال",
+      category: productForm.category as "الكل" | "دفعة الظلام" | "دفعة النخبة" | "دفعة الحلال" | "دفعة الأنمي" | "دفعة TST",
       stock_quantity: parseInt(productForm.stock_quantity),
+      colors: colorsArray,
+      sizes: sizesArray,
     };
 
     if (editingProduct) {
@@ -152,7 +195,7 @@ const Admin = () => {
       } else {
         toast.success("تم تحديث المنتج بنجاح");
         setEditingProduct(null);
-        resetForm();
+        resetProductForm();
         loadProducts();
       }
     } else {
@@ -162,7 +205,7 @@ const Admin = () => {
         toast.error("حدث خطأ في إضافة المنتج");
       } else {
         toast.success("تم إضافة المنتج بنجاح");
-        resetForm();
+        resetProductForm();
         loadProducts();
       }
     }
@@ -178,6 +221,8 @@ const Admin = () => {
       image_url: product.image_url,
       category: product.category,
       stock_quantity: product.stock_quantity.toString(),
+      colors: product.colors?.join(", ") || "",
+      sizes: product.sizes?.join(", ") || "",
     });
   };
 
@@ -194,6 +239,86 @@ const Admin = () => {
     }
   };
 
+  const handleSubmitBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const bannerData = {
+      title: bannerForm.title,
+      description: bannerForm.description || null,
+      image_url: bannerForm.image_url || null,
+      link: bannerForm.link || null,
+      is_active: bannerForm.is_active,
+      display_order: editingBanner?.display_order ?? banners.length,
+    };
+
+    if (editingBanner) {
+      const { error } = await supabase.from("banners").update(bannerData).eq("id", editingBanner.id);
+
+      if (error) {
+        toast.error("حدث خطأ في تحديث العرض");
+      } else {
+        toast.success("تم تحديث العرض بنجاح");
+        setEditingBanner(null);
+        resetBannerForm();
+        loadBanners();
+      }
+    } else {
+      const { error } = await supabase.from("banners").insert([bannerData]);
+
+      if (error) {
+        toast.error("حدث خطأ في إضافة العرض");
+      } else {
+        toast.success("تم إضافة العرض بنجاح");
+        resetBannerForm();
+        loadBanners();
+      }
+    }
+  };
+
+  const handleEditBanner = (banner: Banner) => {
+    setEditingBanner(banner);
+    setBannerForm({
+      title: banner.title,
+      description: banner.description || "",
+      image_url: banner.image_url || "",
+      link: banner.link || "",
+      is_active: banner.is_active,
+    });
+  };
+
+  const handleDeleteBanner = async (id: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذا العرض؟")) return;
+
+    const { error } = await supabase.from("banners").delete().eq("id", id);
+
+    if (error) {
+      toast.error("حدث خطأ في حذف العرض");
+    } else {
+      toast.success("تم حذف العرض بنجاح");
+      loadBanners();
+    }
+  };
+
+  const handleMoveBanner = async (id: string, direction: 'up' | 'down') => {
+    const index = banners.findIndex(b => b.id === id);
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === banners.length - 1)) return;
+
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    const updatedBanners = [...banners];
+    [updatedBanners[index], updatedBanners[newIndex]] = [updatedBanners[newIndex], updatedBanners[index]];
+
+    const updates = updatedBanners.map((banner, idx) => ({
+      id: banner.id,
+      display_order: idx,
+    }));
+
+    for (const update of updates) {
+      await supabase.from("banners").update({ display_order: update.display_order }).eq("id", update.id);
+    }
+
+    loadBanners();
+  };
+
   const handleUpdateOrderStatus = async (orderId: string, status: "pending" | "confirmed" | "delivered" | "cancelled") => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
 
@@ -205,7 +330,7 @@ const Admin = () => {
     }
   };
 
-  const resetForm = () => {
+  const resetProductForm = () => {
     setProductForm({
       name: "",
       description: "",
@@ -214,6 +339,18 @@ const Admin = () => {
       image_url: "",
       category: "الكل",
       stock_quantity: "0",
+      colors: "",
+      sizes: "",
+    });
+  };
+
+  const resetBannerForm = () => {
+    setBannerForm({
+      title: "",
+      description: "",
+      image_url: "",
+      link: "",
+      is_active: true,
     });
   };
 
@@ -236,8 +373,9 @@ const Admin = () => {
         <h1 className="text-4xl font-bold mb-8 text-center">لوحة التحكم</h1>
 
         <Tabs defaultValue="products" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="products">المنتجات</TabsTrigger>
+            <TabsTrigger value="banners">العروض</TabsTrigger>
             <TabsTrigger value="orders">الطلبات</TabsTrigger>
           </TabsList>
 
@@ -319,6 +457,8 @@ const Admin = () => {
                         <SelectItem value="دفعة الظلام">دفعة الظلام</SelectItem>
                         <SelectItem value="دفعة النخبة">دفعة النخبة</SelectItem>
                         <SelectItem value="دفعة الحلال">دفعة الحلال</SelectItem>
+                        <SelectItem value="دفعة الأنمي">دفعة الأنمي</SelectItem>
+                        <SelectItem value="دفعة TST">دفعة TST</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -338,6 +478,26 @@ const Admin = () => {
                   </div>
                 </div>
 
+                <div>
+                  <Label htmlFor="colors">الألوان المتاحة (افصل بفاصلة)</Label>
+                  <Input
+                    id="colors"
+                    placeholder="أحمر, أزرق, أسود"
+                    value={productForm.colors}
+                    onChange={(e) => setProductForm({ ...productForm, colors: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="sizes">المقاسات المتاحة (افصل بفاصلة)</Label>
+                  <Input
+                    id="sizes"
+                    placeholder="S, M, L, XL, XXL"
+                    value={productForm.sizes}
+                    onChange={(e) => setProductForm({ ...productForm, sizes: e.target.value })}
+                  />
+                </div>
+
                 <div className="flex gap-4">
                   <Button type="submit" className="flex-1">
                     {editingProduct ? "تحديث المنتج" : "إضافة المنتج"}
@@ -348,7 +508,7 @@ const Admin = () => {
                       variant="outline"
                       onClick={() => {
                         setEditingProduct(null);
-                        resetForm();
+                        resetProductForm();
                       }}
                     >
                       إلغاء
@@ -375,6 +535,12 @@ const Admin = () => {
                       <span className="font-bold">{product.price} ج.م</span>
                       <Badge>{product.category}</Badge>
                     </div>
+                    {product.colors && product.colors.length > 0 && (
+                      <p className="text-xs">الألوان: {product.colors.join(", ")}</p>
+                    )}
+                    {product.sizes && product.sizes.length > 0 && (
+                      <p className="text-xs">المقاسات: {product.sizes.join(", ")}</p>
+                    )}
                     <p className="text-sm">المتوفر: {product.stock_quantity}</p>
                     <div className="flex gap-2">
                       <Button
@@ -394,6 +560,139 @@ const Admin = () => {
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         حذف
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="banners" className="space-y-8">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold mb-6">
+                {editingBanner ? "تعديل عرض" : "إضافة عرض جديد"}
+              </h2>
+              <form onSubmit={handleSubmitBanner} className="space-y-4">
+                <div>
+                  <Label htmlFor="banner-title">عنوان العرض *</Label>
+                  <Input
+                    id="banner-title"
+                    value={bannerForm.title}
+                    onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="banner-description">وصف العرض</Label>
+                  <Textarea
+                    id="banner-description"
+                    value={bannerForm.description}
+                    onChange={(e) => setBannerForm({ ...bannerForm, description: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="banner-image">رابط الصورة</Label>
+                  <Input
+                    id="banner-image"
+                    type="url"
+                    value={bannerForm.image_url}
+                    onChange={(e) => setBannerForm({ ...bannerForm, image_url: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="banner-link">الرابط (عند الضغط على العرض)</Label>
+                  <Input
+                    id="banner-link"
+                    type="url"
+                    value={bannerForm.link}
+                    onChange={(e) => setBannerForm({ ...bannerForm, link: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="banner-active"
+                    checked={bannerForm.is_active}
+                    onChange={(e) => setBannerForm({ ...bannerForm, is_active: e.target.checked })}
+                  />
+                  <Label htmlFor="banner-active">عرض نشط</Label>
+                </div>
+
+                <div className="flex gap-4">
+                  <Button type="submit" className="flex-1">
+                    {editingBanner ? "تحديث العرض" : "إضافة العرض"}
+                  </Button>
+                  {editingBanner && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingBanner(null);
+                        resetBannerForm();
+                      }}
+                    >
+                      إلغاء
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </Card>
+
+            <div className="space-y-4">
+              {banners.map((banner, index) => (
+                <Card key={banner.id} className="p-4">
+                  <div className="flex items-center gap-4">
+                    {banner.image_url && (
+                      <img
+                        src={banner.image_url}
+                        alt={banner.title}
+                        className="w-32 h-20 object-cover rounded"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg">{banner.title}</h3>
+                      <p className="text-sm text-muted-foreground">{banner.description}</p>
+                      <Badge variant={banner.is_active ? "default" : "secondary"}>
+                        {banner.is_active ? "نشط" : "غير نشط"}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleMoveBanner(banner.id, 'up')}
+                        disabled={index === 0}
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleMoveBanner(banner.id, 'down')}
+                        disabled={index === banners.length - 1}
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditBanner(banner)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteBanner(banner.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -452,7 +751,7 @@ const Admin = () => {
                       {order.notes && (
                         <>
                           <p className="text-sm mt-2 font-semibold">ملاحظات:</p>
-                          <p className="text-sm">{order.notes}</p>
+                          <p className="text-sm whitespace-pre-line">{order.notes}</p>
                         </>
                       )}
                     </div>
@@ -499,7 +798,7 @@ const Admin = () => {
 
             {orders.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-2xl text-muted-foreground">لا توجد طلبات بعد</p>
+                <p className="text-xl text-muted-foreground">لا توجد طلبات حالياً</p>
               </div>
             )}
           </TabsContent>

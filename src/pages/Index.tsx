@@ -27,13 +27,25 @@ type Product = {
   image_url: string;
   category: string;
   stock_quantity: number;
+  colors?: string[];
+  sizes?: string[];
 };
 
-type Category = "الكل" | "دفعة الظلام" | "دفعة النخبة" | "دفعة الحلال";
+type Banner = {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  link: string | null;
+  display_order: number;
+};
+
+type Category = "الكل" | "دفعة الظلام" | "دفعة النخبة" | "دفعة الحلال" | "دفعة الأنمي" | "دفعة TST";
 
 const Index = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category>("الكل");
   const [session, setSession] = useState<Session | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -42,6 +54,8 @@ const Index = () => {
     address: "",
     phone: "",
     notes: "",
+    selectedColor: "",
+    selectedSize: "",
   });
 
   useEffect(() => {
@@ -60,7 +74,20 @@ const Index = () => {
 
   useEffect(() => {
     loadProducts();
+    loadBanners();
   }, [selectedCategory]);
+
+  const loadBanners = async () => {
+    const { data, error } = await supabase
+      .from("banners")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order");
+
+    if (!error && data) {
+      setBanners(data);
+    }
+  };
 
   const loadProducts = async () => {
     let query = supabase.from("products").select("*");
@@ -98,7 +125,7 @@ const Index = () => {
     setOrderDialogOpen(true);
   };
 
-  const handleSubmitOrder = async () => {
+  const handleSubmitOrder = async (sendToWhatsApp: boolean = false) => {
     if (!selectedProduct || !session) return;
 
     if (!orderData.address || !orderData.phone) {
@@ -110,7 +137,7 @@ const Index = () => {
       selectedProduct.price,
       selectedProduct.discount_percentage
     );
-    const shippingCost = finalPrice * 0.01; // 1% من الإجمالي
+    const shippingCost = finalPrice * 0.01;
     const totalAmount = finalPrice + shippingCost;
 
     try {
@@ -123,7 +150,7 @@ const Index = () => {
           final_amount: totalAmount,
           delivery_address: orderData.address,
           phone: orderData.phone,
-          notes: orderData.notes,
+          notes: `${orderData.notes}${orderData.selectedColor ? `\nاللون: ${orderData.selectedColor}` : ''}${orderData.selectedSize ? `\nالمقاس: ${orderData.selectedSize}` : ''}`,
         })
         .select()
         .single();
@@ -142,12 +169,14 @@ const Index = () => {
 
       if (itemError) throw itemError;
 
-      // إنشاء رسالة واتساب
-      const whatsappMessage = `
+      if (sendToWhatsApp) {
+        const whatsappMessage = `
 🛍️ *طلب جديد من Veyron*
 
 📦 *بيانات المنتج:*
 المنتج: ${selectedProduct.name}
+${orderData.selectedColor ? `اللون: ${orderData.selectedColor}` : ''}
+${orderData.selectedSize ? `المقاس: ${orderData.selectedSize}` : ''}
 السعر: ${finalPrice.toFixed(2)} ج.م
 مصاريف الشحن: ${shippingCost.toFixed(2)} ج.م
 الإجمالي: ${totalAmount.toFixed(2)} ج.م
@@ -159,32 +188,67 @@ const Index = () => {
 ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
 
 🔢 *رقم الطلب:* ${order.id}
-      `.trim();
+        `.trim();
 
-      const whatsappUrl = `https://wa.me/201147124165?text=${encodeURIComponent(whatsappMessage)}`;
+        const whatsappUrl = `https://wa.me/201147124165?text=${encodeURIComponent(whatsappMessage)}`;
+        window.open(whatsappUrl, '_blank');
+      }
 
       toast.success(
         "تم إرسال الطلب بنجاح! سيتم التواصل معك قريباً. أنت ملزم بأخذ المنتج ودفع المبلغ."
       );
       
-      // فتح واتساب
-      window.open(whatsappUrl, '_blank');
-      
       setOrderDialogOpen(false);
-      setOrderData({ address: "", phone: "", notes: "" });
+      setOrderData({ address: "", phone: "", notes: "", selectedColor: "", selectedSize: "" });
       setSelectedProduct(null);
     } catch (error: any) {
       toast.error("حدث خطأ في إرسال الطلب");
     }
   };
 
-  const categories: Category[] = ["الكل", "دفعة الظلام", "دفعة النخبة", "دفعة الحلال"];
+  const categories: Category[] = [
+    "الكل",
+    "دفعة الظلام",
+    "دفعة النخبة",
+    "دفعة الحلال",
+    "دفعة الأنمي",
+    "دفعة TST"
+  ];
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="container mx-auto px-4 py-12">
+        {/* بانر العروض */}
+        {banners.length > 0 && (
+          <div className="mb-12 space-y-4">
+            {banners.map((banner) => (
+              <Card
+                key={banner.id}
+                className="overflow-hidden shadow-luxury hover-glow cursor-pointer animate-fade-in"
+                onClick={() => banner.link && window.open(banner.link, '_blank')}
+              >
+                <div className="flex flex-col md:flex-row items-center gap-6 p-6">
+                  {banner.image_url && (
+                    <img
+                      src={banner.image_url}
+                      alt={banner.title}
+                      className="w-full md:w-48 h-32 object-cover rounded-lg"
+                    />
+                  )}
+                  <div className="flex-1 text-center md:text-right">
+                    <h2 className="text-3xl font-bold mb-2">{banner.title}</h2>
+                    {banner.description && (
+                      <p className="text-lg text-muted-foreground">{banner.description}</p>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
         {/* القسم الرئيسي */}
         <section className="text-center space-y-8 mb-16 animate-fade-in-up">
           <div className="max-w-4xl mx-auto space-y-4">
@@ -207,7 +271,7 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               onClick={() => setSelectedCategory(category)}
               className={`text-lg px-6 py-6 hover-scale transition-all duration-300 ${
                 selectedCategory === category 
-                  ? 'shadow-luxury animate-pulse-slow' 
+                  ? 'bg-gradient-ice shadow-luxury' 
                   : 'hover:shadow-card'
               }`}
             >
@@ -230,7 +294,13 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
                   <img
                     src={product.image_url}
                     alt={product.name}
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-125 group-hover:rotate-2"
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                    loading="lazy"
+                    style={{ 
+                      maxWidth: '100%',
+                      height: 'auto',
+                      imageRendering: 'auto'
+                    }}
                   />
                   {product.discount_percentage > 0 && (
                     <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-lg px-3 py-1 animate-float shadow-luxury z-20">
@@ -252,6 +322,28 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
                     <p className="text-muted-foreground">{product.description}</p>
                   )}
                 </div>
+
+                {product.colors && product.colors.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold mb-1">الألوان المتاحة:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {product.colors.map((color) => (
+                        <Badge key={color} variant="secondary">{color}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {product.sizes && product.sizes.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold mb-1">المقاسات المتاحة:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {product.sizes.map((size) => (
+                        <Badge key={size} variant="secondary">{size}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-3">
                   {product.discount_percentage > 0 ? (
@@ -296,7 +388,7 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
 
       {/* Dialog للطلب */}
       <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">إتمام الطلب</DialogTitle>
             <DialogDescription>
@@ -328,6 +420,42 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
           </DialogHeader>
 
           <div className="space-y-4">
+            {selectedProduct?.colors && selectedProduct.colors.length > 0 && (
+              <div>
+                <Label htmlFor="color">اختر اللون *</Label>
+                <select
+                  id="color"
+                  className="w-full p-2 border rounded-md bg-background"
+                  value={orderData.selectedColor}
+                  onChange={(e) => setOrderData({ ...orderData, selectedColor: e.target.value })}
+                  required
+                >
+                  <option value="">اختر اللون...</option>
+                  {selectedProduct.colors.map((color) => (
+                    <option key={color} value={color}>{color}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {selectedProduct?.sizes && selectedProduct.sizes.length > 0 && (
+              <div>
+                <Label htmlFor="size">اختر المقاس *</Label>
+                <select
+                  id="size"
+                  className="w-full p-2 border rounded-md bg-background"
+                  value={orderData.selectedSize}
+                  onChange={(e) => setOrderData({ ...orderData, selectedSize: e.target.value })}
+                  required
+                >
+                  <option value="">اختر المقاس...</option>
+                  {selectedProduct.sizes.map((size) => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div>
               <Label htmlFor="address">عنوان التوصيل بالتفصيل *</Label>
               <Textarea
@@ -376,9 +504,21 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               * سيتم إرسال الأوردر لك وأنت ملزم بأخذه ودفع المال
             </p>
 
-            <Button onClick={handleSubmitOrder} className="w-full text-lg py-6">
-              تأكيد الطلب
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={() => handleSubmitOrder(false)} 
+                className="w-full text-lg py-6"
+                variant="outline"
+              >
+                تأكيد الطلب عادي
+              </Button>
+              <Button 
+                onClick={() => handleSubmitOrder(true)} 
+                className="w-full text-lg py-6"
+              >
+                تأكيد الطلب عبر واتساب
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
