@@ -49,13 +49,16 @@ const Auth = () => {
           toast.error(error.message);
         }
       } else if (data.user) {
+        // انتظر قليلاً حتى يتم إنشاء الـ profile بواسطة الـ trigger
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         // إذا كان هناك كود إحالة، تحقق منه وسجل الإحالة
         if (signUpData.referralCode) {
           const { data: referrerProfile } = await supabase
             .from("profiles")
-            .select("id")
+            .select("id, referral_code")
             .eq("referral_code", signUpData.referralCode)
-            .single();
+            .maybeSingle();
 
           if (referrerProfile) {
             // حفظ كود الإحالة في profile المستخدم الجديد
@@ -65,13 +68,16 @@ const Auth = () => {
               .eq("id", data.user.id);
 
             // تسجيل الإحالة
-            await supabase.from("referrals").insert({
+            const { error: referralError } = await supabase.from("referrals").insert({
               referrer_id: referrerProfile.id,
               referred_id: data.user.id,
               referral_code: signUpData.referralCode,
               used: false,
             });
-            toast.success("تم تسجيلك عن طريق دعوة صديقك! ستحصلان على خصومات عند أول عملية شراء");
+
+            if (!referralError) {
+              toast.success("تم تسجيلك بنجاح! ستحصل أنت وصديقك على خصومات عند الشراء والتسليم");
+            }
           } else {
             toast.error("كود الإحالة غير صحيح");
           }
@@ -79,7 +85,9 @@ const Auth = () => {
 
         // تسجيل الدخول تلقائياً بعد إنشاء الحساب
         if (data.session) {
-          toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح!");
+          if (!signUpData.referralCode) {
+            toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح!");
+          }
           navigate("/");
         } else {
           toast.success("تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول");
