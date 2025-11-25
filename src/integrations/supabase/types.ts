@@ -50,6 +50,84 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_usage: {
+        Row: {
+          coupon_id: string
+          id: string
+          order_id: string | null
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          id?: string
+          order_id?: string | null
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          id?: string
+          order_id?: string | null
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "discount_coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usage_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discount_coupons: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          current_uses: number | null
+          discount_percentage: number
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number | null
+          discount_percentage: number
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number | null
+          discount_percentage?: number
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -103,12 +181,14 @@ export type Database = {
       }
       orders: {
         Row: {
+          coupon_code: string | null
           created_at: string
           delivery_address: string
           final_amount: number
           id: string
           notes: string | null
           phone: string
+          referral_code: string | null
           shipping_cost: number
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
@@ -116,12 +196,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          coupon_code?: string | null
           created_at?: string
           delivery_address: string
           final_amount: number
           id?: string
           notes?: string | null
           phone: string
+          referral_code?: string | null
           shipping_cost: number
           status?: Database["public"]["Enums"]["order_status"]
           total_amount: number
@@ -129,12 +211,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          coupon_code?: string | null
           created_at?: string
           delivery_address?: string
           final_amount?: number
           id?: string
           notes?: string | null
           phone?: string
+          referral_code?: string | null
           shipping_cost?: number
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
@@ -304,6 +388,7 @@ export type Database = {
           id: string
           notes: string | null
           phone: string | null
+          referral_code: string | null
           updated_at: string
         }
         Insert: {
@@ -312,6 +397,7 @@ export type Database = {
           id: string
           notes?: string | null
           phone?: string | null
+          referral_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -320,7 +406,35 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string | null
+          referral_code?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string | null
+          referrer_id: string
+          used: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id?: string | null
+          referrer_id: string
+          used?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string | null
+          referrer_id?: string
+          used?: boolean | null
         }
         Relationships: []
       }
@@ -350,6 +464,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

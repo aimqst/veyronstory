@@ -10,6 +10,8 @@ import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import Developer from "./pages/Developer";
 import ProductDetail from "./pages/ProductDetail";
+import CouponManagement from "./pages/CouponManagement";
+import Referral from "./pages/Referral";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,8 +28,10 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/coupons" element={<CouponManagement />} />
           <Route path="/developer" element={<Developer />} />
           <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/referral" element={<Referral />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
