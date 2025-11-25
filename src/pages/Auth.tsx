@@ -17,17 +17,8 @@ const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [signUpData, setSignUpData] = useState({ email: "", password: "", confirmPassword: "" });
+  const [signUpData, setSignUpData] = useState({ email: "", password: "", confirmPassword: "", referralCode: "" });
   const [signInData, setSignInData] = useState({ email: "", password: "" });
-  const [referralCode, setReferralCode] = useState<string | null>(null);
-
-  useEffect(() => {
-    const ref = searchParams.get("ref");
-    if (ref) {
-      setReferralCode(ref);
-      toast.info(`سيتم تسجيلك عن طريق دعوة من صديقك! ستحصل على خصم خاص عند أول عملية شراء`);
-    }
-  }, [searchParams]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,23 +48,32 @@ const Auth = () => {
         } else {
           toast.error(error.message);
         }
-      } else {
-        // إذا كان هناك كود إحالة، سجل الإحالة
-        if (referralCode && data.user) {
+      } else if (data.user) {
+        // إذا كان هناك كود إحالة، تحقق منه وسجل الإحالة
+        if (signUpData.referralCode) {
           const { data: referrerProfile } = await supabase
             .from("profiles")
             .select("id")
-            .eq("referral_code", referralCode)
+            .eq("referral_code", signUpData.referralCode)
             .single();
 
           if (referrerProfile) {
+            // حفظ كود الإحالة في profile المستخدم الجديد
+            await supabase
+              .from("profiles")
+              .update({ used_referral_code: signUpData.referralCode })
+              .eq("id", data.user.id);
+
+            // تسجيل الإحالة
             await supabase.from("referrals").insert({
               referrer_id: referrerProfile.id,
               referred_id: data.user.id,
-              referral_code: referralCode,
+              referral_code: signUpData.referralCode,
               used: false,
             });
             toast.success("تم تسجيلك عن طريق دعوة صديقك! ستحصلان على خصومات عند أول عملية شراء");
+          } else {
+            toast.error("كود الإحالة غير صحيح");
           }
         }
 
@@ -84,7 +84,7 @@ const Auth = () => {
         } else {
           toast.success("تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول");
         }
-        setSignUpData({ email: "", password: "", confirmPassword: "" });
+        setSignUpData({ email: "", password: "", confirmPassword: "", referralCode: "" });
       }
     } catch (error: any) {
       toast.error(error.message || "حدث خطأ أثناء التسجيل");
@@ -195,13 +195,6 @@ const Auth = () => {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-5">
-                  {referralCode && (
-                    <div className="bg-primary/10 p-3 rounded-lg text-center">
-                      <p className="text-sm font-medium text-primary">
-                        🎉 تم الدعوة بواسطة صديقك! ستحصل على خصم خاص
-                      </p>
-                    </div>
-                  )}
                   <div className="space-y-2">
                     <Label htmlFor="signup-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                     <Input
@@ -240,6 +233,22 @@ const Auth = () => {
                       required
                       className="h-11 transition-all focus:ring-2 focus:ring-primary/50"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-referral" className="text-sm font-medium">كود الإحالة (اختياري)</Label>
+                    <Input
+                      id="signup-referral"
+                      type="text"
+                      placeholder="أدخل كود الإحالة إن وجد"
+                      value={signUpData.referralCode}
+                      onChange={(e) =>
+                        setSignUpData({ ...signUpData, referralCode: e.target.value.toUpperCase() })
+                      }
+                      className="h-11 transition-all focus:ring-2 focus:ring-primary/50 font-mono"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      إذا كان لديك كود دعوة من صديق، أدخله هنا للحصول على خصومات
+                    </p>
                   </div>
                   <Button 
                     type="submit" 

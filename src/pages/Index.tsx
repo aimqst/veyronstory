@@ -203,15 +203,39 @@ const Index = () => {
           .eq("id", session.user.id);
       }
 
-      // Get user's profile to check for referral code
+      // Update coupon usage if applied
+      if (orderData.couponCode) {
+        const { data: couponData } = await supabase
+          .from("discount_coupons")
+          .select("*")
+          .eq("code", orderData.couponCode)
+          .single();
+
+        if (couponData) {
+          // Increment current_uses
+          await supabase
+            .from("discount_coupons")
+            .update({ current_uses: (couponData.current_uses || 0) + 1 })
+            .eq("id", couponData.id);
+
+          // Record coupon usage
+          await supabase.from("coupon_usage").insert({
+            coupon_id: couponData.id,
+            user_id: session.user.id,
+            order_id: order.id,
+          });
+        }
+      }
+
+      // Get user's profile to check for referral code they used during signup
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("referral_code")
+        .select("used_referral_code")
         .eq("id", session.user.id)
         .single();
 
-      // If user has a referral code from signup, save it in the order
-      if (profileData?.referral_code) {
+      // If user used a referral code during signup, save it in the order
+      if (profileData?.used_referral_code) {
         // Check if there's an unused referral for this user
         const { data: referralData } = await supabase
           .from("referrals")
