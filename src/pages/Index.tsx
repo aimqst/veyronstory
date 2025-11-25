@@ -178,33 +178,30 @@ const Index = () => {
 
       if (itemError) throw itemError;
 
-      // Check if this user was referred and this is their first order
-      const { data: referralData } = await supabase
-        .from("referrals")
-        .select("*")
-        .eq("referred_id", session.user.id)
-        .eq("used", false)
+      // Get user's profile to check for referral code
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("id", session.user.id)
         .single();
 
-      if (referralData) {
-        // Mark referral as used
-        await supabase
+      // If user has a referral code from signup, save it in the order
+      if (profileData?.referral_code) {
+        // Check if there's an unused referral for this user
+        const { data: referralData } = await supabase
           .from("referrals")
-          .update({ used: true })
-          .eq("id", referralData.id);
+          .select("referral_code")
+          .eq("referred_id", session.user.id)
+          .eq("used", false)
+          .single();
 
-        // Create a 15% discount coupon for the referrer
-        const couponCode = `REF${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-        
-        await supabase.from("discount_coupons").insert({
-          code: couponCode,
-          discount_percentage: 15,
-          max_uses: 1,
-          is_active: true,
-          created_by: referralData.referrer_id,
-        });
-
-        toast.success("🎉 صديقك الذي دعاك حصل على كوبون خصم 15%!");
+        if (referralData) {
+          // Update order with referral code
+          await supabase
+            .from("orders")
+            .update({ referral_code: referralData.referral_code })
+            .eq("id", order.id);
+        }
       }
 
       if (sendToWhatsApp) {
