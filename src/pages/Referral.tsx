@@ -33,6 +33,7 @@ const Referral = () => {
   const [referralCode, setReferralCode] = useState("");
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [referralDiscount, setReferralDiscount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,6 +52,7 @@ const Referral = () => {
     await loadReferralCode(session.user.id);
     await loadReferrals(session.user.id);
     await loadCoupons(session.user.id);
+    await loadReferralDiscount(session.user.id);
     setLoading(false);
   };
 
@@ -88,6 +90,18 @@ const Referral = () => {
 
     if (!error && data) {
       setCoupons(data);
+    }
+  };
+
+  const loadReferralDiscount = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("referral_discount_percentage")
+      .eq("id", userId)
+      .single();
+
+    if (!error && data) {
+      setReferralDiscount(data.referral_discount_percentage || 0);
     }
   };
 
@@ -189,6 +203,22 @@ const Referral = () => {
           </div>
         </Card>
 
+        {/* رصيد الخصم المتاح */}
+        {referralDiscount > 0 && (
+          <Card className="p-8 mb-8 bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary">
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl font-bold">🎉 لديك خصم متاح!</h2>
+              <div className="text-6xl font-bold text-primary">{referralDiscount}%</div>
+              <p className="text-xl text-muted-foreground">
+                سيتم تطبيق هذا الخصم تلقائياً على طلبك القادم
+              </p>
+              <p className="text-sm text-muted-foreground">
+                الخصم يظهر مباشرة عند إضافة المنتج للسلة
+              </p>
+            </div>
+          </Card>
+        )}
+
         {/* الكوبونات المتاحة */}
         {coupons.length > 0 && (
           <Card className="p-8 mb-8">
@@ -286,7 +316,7 @@ const Referral = () => {
               <div>
                 <h3 className="font-bold text-lg mb-2">احصل على مكافأتك</h3>
                 <p className="text-muted-foreground">
-                  ستحصل تلقائياً على كوبون خصم بنسبة 15% يمكنك استخدامه في طلبك التالي
+                  ستحصل تلقائياً على خصم بنسبة 15% يُطبق تلقائياً على طلبك القادم
                 </p>
               </div>
             </div>
