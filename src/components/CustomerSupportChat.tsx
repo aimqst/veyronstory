@@ -153,39 +153,40 @@ export const CustomerSupportChat = () => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 px-6 rounded-full shadow-lg z-50 bg-primary hover:bg-primary/90"
+        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 h-12 sm:h-14 px-4 sm:px-6 rounded-full shadow-lg z-50 bg-primary hover:bg-primary/90 text-sm sm:text-base"
         size="lg"
       >
-        <MessageCircle className="ml-2 h-5 w-5" />
-        خدمة العملاء
+        <MessageCircle className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+        <span className="hidden sm:inline">خدمة العملاء</span>
+        <span className="sm:hidden">الدعم</span>
       </Button>
     );
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-[380px] h-[600px] shadow-2xl z-50 flex flex-col">
+    <Card className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[380px] h-[calc(100vh-8rem)] sm:h-[600px] max-h-[600px] shadow-2xl z-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
         <div className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          <h3 className="font-semibold">خدمة العملاء</h3>
+          <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+          <h3 className="font-semibold text-sm sm:text-base">خدمة العملاء</h3>
         </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setIsOpen(false)}
-          className="hover:bg-primary-foreground/10"
+          className="hover:bg-primary-foreground/10 h-8 w-8"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
         {messages.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
-            <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">مرحباً! كيف يمكنني مساعدتك اليوم؟</p>
+            <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 opacity-50" />
+            <p className="text-xs sm:text-sm">مرحباً! كيف يمكنني مساعدتك اليوم؟</p>
           </div>
         )}
         
@@ -195,21 +196,21 @@ export const CustomerSupportChat = () => {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${
+              className={`max-w-[85%] sm:max-w-[80%] rounded-lg px-3 sm:px-4 py-2 ${
                 msg.role === "user"
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted"
               }`}
             >
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{msg.content}</p>
             </div>
           </div>
         ))}
         
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-muted rounded-lg px-4 py-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
+            <div className="bg-muted rounded-lg px-3 sm:px-4 py-2">
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
             </div>
           </div>
         )}
@@ -218,23 +219,23 @@ export const CustomerSupportChat = () => {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t">
+      <div className="p-3 sm:p-4 border-t">
         <div className="flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="اكتب رسالتك هنا..."
-            className="resize-none min-h-[80px]"
+            className="resize-none min-h-[60px] sm:min-h-[80px] text-sm"
             disabled={isLoading}
           />
           <Button
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
             size="icon"
-            className="h-[80px] w-12"
+            className="h-[60px] sm:h-[80px] w-10 sm:w-12 shrink-0"
           >
-            <Send className="h-5 w-5" />
+            <Send className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
       </div>

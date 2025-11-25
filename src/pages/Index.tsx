@@ -270,6 +270,11 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
                       src={banner.image_url}
                       alt={banner.title}
                       className="w-full md:w-48 h-32 object-cover rounded-lg"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
                   )}
                   <div className="flex-1 text-center md:text-right">
@@ -285,12 +290,12 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
         )}
 
         {/* القسم الرئيسي */}
-        <section className="text-center space-y-8 mb-16 animate-fade-in-up">
-          <div className="max-w-4xl mx-auto space-y-4">
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+        <section className="text-center space-y-6 sm:space-y-8 mb-12 sm:mb-16 animate-fade-in-up px-4">
+          <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
               أهلا وسهلا بك في Veyron، العلامة الفاخرة للهوديز الشتوية
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
               الخامات ميلتون قطن سفنجي بميزة معالجة ضد الوبر وبالنسبة للطباعة فهي من أعلى الطباعات
               نوع ديجيتال عالي الجودة متاح التصاميم المخصصة
             </p>
@@ -298,13 +303,13 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
         </section>
 
         {/* الفئات */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12 animate-fade-in">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 sm:mb-12 animate-fade-in px-2">
           {categories.map((category) => (
             <Button
               key={category}
               variant={selectedCategory === category ? "secondary" : "outline"}
               onClick={() => setSelectedCategory(category)}
-              className={`text-lg px-6 py-6 hover-scale transition-all duration-300 ${
+              className={`text-sm sm:text-base md:text-lg px-3 sm:px-4 md:px-6 py-4 sm:py-5 md:py-6 hover-scale transition-all duration-300 ${
                 selectedCategory === category 
                   ? 'bg-gradient-ice shadow-luxury text-foreground font-bold' 
                   : 'hover:shadow-card'
@@ -316,7 +321,7 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
         </div>
 
         {/* عرض المنتجات */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 px-2 sm:px-4">
           {products.map((product, index) => (
             <Card
               key={product.id}
@@ -331,10 +336,9 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
                     alt={product.name}
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                     loading="lazy"
-                    style={{ 
-                      maxWidth: '100%',
-                      height: 'auto',
-                      imageRendering: 'auto'
+                    decoding="async"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://via.placeholder.com/400x400?text=No+Image';
                     }}
                   />
                   {product.discount_percentage > 0 && (
