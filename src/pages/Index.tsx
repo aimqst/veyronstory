@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Session } from "@supabase/supabase-js";
+import { ProductImage } from "@/components/ProductImage";
 
 type Product = {
   id: string;
@@ -269,11 +270,10 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
                 <div className="flex flex-col md:flex-row items-center gap-6 p-6">
                   {banner.image_url && (
                     <div className="w-full md:w-48 h-32 overflow-hidden rounded-lg flex-shrink-0">
-                      <img
+                      <ProductImage
                         src={banner.image_url}
                         alt={banner.title}
                         className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
                       />
                     </div>
                   )}
@@ -331,11 +331,10 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
               {product.image_url && (
                 <div className="relative aspect-square overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                  <img
+                  <ProductImage
                     src={product.image_url}
                     alt={product.name}
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-                    referrerPolicy="no-referrer"
                   />
                   {product.discount_percentage > 0 && (
                     <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-lg px-3 py-1 animate-float shadow-luxury z-20">
