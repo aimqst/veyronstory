@@ -391,6 +391,7 @@ export type Database = {
           referral_code: string | null
           referral_discount_percentage: number | null
           updated_at: string
+          used_referral_code: string | null
         }
         Insert: {
           address?: string | null
@@ -401,6 +402,7 @@ export type Database = {
           referral_code?: string | null
           referral_discount_percentage?: number | null
           updated_at?: string
+          used_referral_code?: string | null
         }
         Update: {
           address?: string | null
@@ -411,6 +413,7 @@ export type Database = {
           referral_code?: string | null
           referral_discount_percentage?: number | null
           updated_at?: string
+          used_referral_code?: string | null
         }
         Relationships: []
       }

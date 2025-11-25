@@ -156,7 +156,7 @@ const Referral = () => {
           <Gift className="w-16 h-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl font-bold mb-4">ادعُ أصدقاءك واحصل على مكافآت</h1>
           <p className="text-xl text-muted-foreground">
-            شارك رابطك الخاص مع الأصدقاء واحصل على خصم 15% عندما يقومون بالشراء
+            شارك كودك الخاص مع الأصدقاء واحصل على خصم 15% عندما يقومون بالشراء
           </p>
         </div>
 
@@ -184,22 +184,17 @@ const Referral = () => {
                 readOnly
                 className="text-center text-2xl font-mono font-bold"
               />
-              <Button size="icon" onClick={handleCopyLink}>
+              <Button size="icon" onClick={() => {
+                navigator.clipboard.writeText(referralCode);
+                toast.success("تم نسخ كود الإحالة");
+              }}>
                 <Copy className="w-4 h-4" />
               </Button>
             </div>
             
-            <div className="flex gap-2">
-              <Input
-                value={getReferralLink()}
-                readOnly
-                className="text-sm"
-              />
-              <Button onClick={handleShare} className="whitespace-nowrap">
-                <Share2 className="w-4 h-4 ml-2" />
-                مشاركة
-              </Button>
-            </div>
+            <p className="text-center text-sm text-muted-foreground">
+              أرسل هذا الكود لأصدقائك ليدخلوه عند إنشاء الحساب
+            </p>
           </div>
         </Card>
 
@@ -290,9 +285,9 @@ const Referral = () => {
                 1
               </div>
               <div>
-                <h3 className="font-bold text-lg mb-2">شارك رابطك</h3>
+                <h3 className="font-bold text-lg mb-2">شارك كودك</h3>
                 <p className="text-muted-foreground">
-                  أرسل رابط الإحالة الخاص بك لأصدقائك عبر واتساب، فيسبوك، أو أي وسيلة أخرى
+                  أرسل كود الإحالة الخاص بك لأصدقائك عبر واتساب، فيسبوك، أو أي وسيلة أخرى
                 </p>
               </div>
             </div>
@@ -302,9 +297,9 @@ const Referral = () => {
                 2
               </div>
               <div>
-                <h3 className="font-bold text-lg mb-2">صديقك يشتري</h3>
+                <h3 className="font-bold text-lg mb-2">صديقك يُسجل بالكود</h3>
                 <p className="text-muted-foreground">
-                  عندما يستخدم صديقك رابطك أو كودك ويقوم بعملية شراء
+                  عندما يُدخل صديقك كودك عند إنشاء الحساب ويقوم بعملية شراء
                 </p>
               </div>
             </div>
