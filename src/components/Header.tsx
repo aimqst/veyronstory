@@ -251,7 +251,7 @@ const Header = () => {
                     )}
                   </div>
 
-                  <div className="mt-4">
+                  <div className="mt-4 pt-4 border-t">
                     <InstallPWA />
                   </div>
                 </div>
