@@ -12,6 +12,7 @@ import Developer from "./pages/Developer";
 import ProductDetail from "./pages/ProductDetail";
 import CouponManagement from "./pages/CouponManagement";
 import AIManagement from "./pages/AIManagement";
+import Statistics from "./pages/Statistics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/coupons" element={<CouponManagement />} />
           <Route path="/admin/ai" element={<AIManagement />} />
+          <Route path="/admin/statistics" element={<Statistics />} />
           <Route path="/developer" element={<Developer />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

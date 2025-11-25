@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, LogOut, LayoutDashboard, Menu, X, Info, Phone, Store, MessageCircle, Ticket } from "lucide-react";
+import { ShoppingCart, User, LogOut, LayoutDashboard, Menu, X, Info, Phone, Store, MessageCircle, Ticket, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -120,6 +120,15 @@ const Header = () => {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => navigate("/admin/statistics")}
+                      className="gap-2"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                      إحصائيات
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => navigate("/admin/coupons")}
                       className="gap-2"
                     >
@@ -199,7 +208,7 @@ const Header = () => {
                     {session ? (
                       <>
                         {isAdmin && (
-                          <>
+                      <>
                             <Button
                               variant="ghost"
                               className="w-full justify-start gap-3 text-base h-12 mb-2"
@@ -210,6 +219,17 @@ const Header = () => {
                             >
                               <LayoutDashboard className="h-5 w-5" />
                               لوحة التحكم
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start gap-3 text-base h-12 mb-2"
+                              onClick={() => {
+                                navigate("/admin/statistics");
+                                closeSheet();
+                              }}
+                            >
+                              <BarChart3 className="h-5 w-5" />
+                              الإحصائيات
                             </Button>
                             <Button
                               variant="ghost"
