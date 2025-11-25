@@ -101,16 +101,34 @@ const Header = () => {
 
             {session ? (
               <>
+                <Link
+                  to="/referral"
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    isActive("/referral") ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  دعوة الأصدقاء
+                </Link>
                 {isAdmin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/admin")}
-                    className="gap-2"
-                  >
-                    <LayoutDashboard className="w-4 h-4" />
-                    <span className="hidden sm:inline">لوحة التحكم</span>
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/admin")}
+                      className="gap-2"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span className="hidden sm:inline">لوحة التحكم</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/admin/coupons")}
+                      className="gap-2"
+                    >
+                      كوبونات
+                    </Button>
+                  </>
                 )}
                 <Button
                   variant="outline"

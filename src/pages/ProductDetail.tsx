@@ -63,7 +63,10 @@ const ProductDetail = () => {
     notes: "",
     selectedColor: "",
     selectedSize: "",
+    couponCode: "",
+    referralCode: "",
   });
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -334,7 +337,14 @@ const ProductDetail = () => {
 
     if (!session || !product) return;
 
-    const finalPrice = calculateFinalPrice(product.price, product.discount_percentage);
+    let finalPrice = calculateFinalPrice(product.price, product.discount_percentage);
+    let couponDiscount = appliedDiscount;
+    
+    // Apply coupon discount
+    if (couponDiscount > 0) {
+      finalPrice = finalPrice - (finalPrice * couponDiscount / 100);
+    }
+    
     const shippingCost = 30;
     const totalAmount = finalPrice;
     const finalAmount = totalAmount + shippingCost;
@@ -349,6 +359,8 @@ const ProductDetail = () => {
         total_amount: totalAmount,
         shipping_cost: shippingCost,
         final_amount: finalAmount,
+        coupon_code: orderData.couponCode || null,
+        referral_code: orderData.referralCode || null,
         status: "pending",
       })
       .select()
@@ -398,7 +410,10 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ""}`;
       notes: "",
       selectedColor: "",
       selectedSize: "",
+      couponCode: "",
+      referralCode: "",
     });
+    setAppliedDiscount(0);
   };
 
   if (!product) {
@@ -471,7 +486,7 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ""}`;
                     ))}
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    ({totalRatings} تقييم)
+                    {averageRating > 0 ? averageRating.toFixed(1) : "0.0"} من 5
                   </span>
                 </div>
                 
@@ -736,18 +751,90 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ""}`;
               />
             </div>
 
+            <div>
+              <Label htmlFor="coupon">كود الخصم (اختياري)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="coupon"
+                  placeholder="أدخل كود الخصم"
+                  value={orderData.couponCode}
+                  onChange={(e) =>
+                    setOrderData({ ...orderData, couponCode: e.target.value })
+                  }
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={async () => {
+                    if (!orderData.couponCode.trim()) {
+                      toast.error("أدخل كود الخصم أولاً");
+                      return;
+                    }
+                    
+                    const { data: coupon } = await supabase
+                      .from("discount_coupons")
+                      .select("*")
+                      .eq("code", orderData.couponCode.trim())
+                      .eq("is_active", true)
+                      .single();
+                    
+                    if (!coupon) {
+                      toast.error("كود الخصم غير صالح");
+                      return;
+                    }
+                    
+                    if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) {
+                      toast.error("تم استخدام هذا الكود الحد الأقصى من المرات");
+                      return;
+                    }
+                    
+                    setAppliedDiscount(coupon.discount_percentage);
+                    toast.success(`تم تطبيق خصم ${coupon.discount_percentage}%`);
+                  }}
+                >
+                  تطبيق
+                </Button>
+              </div>
+              {appliedDiscount > 0 && (
+                <p className="text-sm text-green-600 mt-1">
+                  ✓ تم تطبيق خصم {appliedDiscount}%
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="referral">كود الإحالة (اختياري)</Label>
+              <Input
+                id="referral"
+                placeholder="أدخل كود إحالة صديقك"
+                value={orderData.referralCode}
+                onChange={(e) =>
+                  setOrderData({ ...orderData, referralCode: e.target.value })
+                }
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                إذا كان لديك كود إحالة من صديق، أدخله هنا
+              </p>
+            </div>
+
             <div className="bg-muted p-4 rounded-lg space-y-2">
               <div className="flex justify-between">
                 <span>سعر المنتج:</span>
-                <span className="font-bold">{finalPrice} جنيه</span>
+                <span className="font-bold">{calculateFinalPrice(product.price, product.discount_percentage)} جنيه</span>
               </div>
+              {appliedDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>خصم الكوبون ({appliedDiscount}%):</span>
+                  <span className="font-bold">-{(calculateFinalPrice(product.price, product.discount_percentage) * appliedDiscount / 100).toFixed(2)} جنيه</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>تكلفة الشحن:</span>
                 <span className="font-bold">30 جنيه</span>
               </div>
               <div className="flex justify-between text-lg font-bold border-t pt-2">
                 <span>الإجمالي:</span>
-                <span>{finalPrice + 30} جنيه</span>
+                <span>{(calculateFinalPrice(product.price, product.discount_percentage) * (1 - appliedDiscount / 100) + 30).toFixed(2)} جنيه</span>
               </div>
             </div>
 
