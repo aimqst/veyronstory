@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Session } from "@supabase/supabase-js";
 import { ProductImage } from "@/components/ProductImage";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 type Product = {
   id: string;
@@ -47,6 +48,7 @@ type Category = "الكل" | "دفعة الظلام" | "دفعة النخبة" |
 
 const Index = () => {
   const navigate = useNavigate();
+  const { settings } = useSiteSettings();
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category>("الكل");
@@ -293,11 +295,10 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
         <section className="text-center space-y-6 sm:space-y-8 mb-12 sm:mb-16 animate-fade-in-up px-4">
           <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              أهلا وسهلا بك في Veyron، العلامة الفاخرة للهوديز الشتوية
+              {settings?.home_texts?.hero_title || "أهلا وسهلا بك في Veyron، العلامة الفاخرة للهوديز الشتوية"}
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
-              الخامات ميلتون قطن سفنجي بميزة معالجة ضد الوبر وبالنسبة للطباعة فهي من أعلى الطباعات
-              نوع ديجيتال عالي الجودة متاح التصاميم المخصصة
+              {settings?.home_texts?.hero_description || "الخامات ميلتون قطن سفنجي بميزة معالجة ضد الوبر وبالنسبة للطباعة فهي من أعلى الطباعات نوع ديجيتال عالي الجودة متاح التصاميم المخصصة"}
             </p>
           </div>
         </section>

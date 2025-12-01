@@ -392,6 +392,9 @@ const Admin = () => {
           <Button onClick={() => navigate("/admin/ai")} variant="outline">
             إدارة الذكاء الاصطناعي
           </Button>
+          <Button onClick={() => navigate("/admin/site-settings")} variant="outline">
+            إعدادات الموقع
+          </Button>
         </div>
 
         <Tabs defaultValue="products" className="w-full">

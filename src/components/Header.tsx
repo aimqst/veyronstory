@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import veyronLogo from "@/assets/veyron-logo.png";
 import InstallPWA from "./InstallPWA";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +18,7 @@ import {
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { settings } = useSiteSettings();
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -75,15 +77,17 @@ const Header = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
               <img 
-                src={veyronLogo} 
-                alt="Veyron Logo" 
+                src={settings?.brand_info?.logo_url || veyronLogo} 
+                alt={`${settings?.brand_info?.name || "Veyron"} Logo`}
                 className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-primary/30 shadow-lg"
                 loading="eager"
                 decoding="async"
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-dark bg-clip-text text-transparent">Veyron</h1>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-dark bg-clip-text text-transparent">
+                {settings?.brand_info?.name || "Veyron"}
+              </h1>
               <p className="text-xs text-muted-foreground hidden md:block">اللبس القوة، وحس بالفخامة</p>
             </div>
           </Link>
