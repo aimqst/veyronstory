@@ -21,6 +21,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Session } from "@supabase/supabase-js";
 import { ProductImage } from "@/components/ProductImage";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { EditableText } from "@/components/EditableText";
+import { EditModeToolbar } from "@/components/EditModeToolbar";
+import { Edit } from "lucide-react";
 
 type Product = {
   id: string;
@@ -48,11 +51,24 @@ type Category = "الكل" | "دفعة الظلام" | "دفعة النخبة" |
 
 const Index = () => {
   const navigate = useNavigate();
-  const { settings } = useSiteSettings();
+  const { settings, loading: settingsLoading } = useSiteSettings();
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category>("الكل");
   const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editedTexts, setEditedTexts] = useState({
+    heroTitle: "",
+    heroDescription: "",
+    heroTitleColor: "",
+    heroDescColor: "",
+  });
+  const [editedColors, setEditedColors] = useState({
+    primary: "262.1 83.3% 57.8%",
+    secondary: "220 14.3% 95.9%",
+    accent: "220 14.3% 95.9%",
+  });
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [orderData, setOrderData] = useState({
@@ -68,16 +84,50 @@ const Index = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      checkAdminRole(session?.user?.id);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_, session) => {
       setSession(session);
+      checkAdminRole(session?.user?.id);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (settings) {
+      setEditedTexts({
+        heroTitle: settings.home_texts?.hero_title || "",
+        heroDescription: settings.home_texts?.hero_description || "",
+        heroTitleColor: "",
+        heroDescColor: "",
+      });
+      setEditedColors({
+        primary: settings.colors?.primary || "262.1 83.3% 57.8%",
+        secondary: settings.colors?.secondary || "220 14.3% 95.9%",
+        accent: settings.colors?.accent || "220 14.3% 95.9%",
+      });
+    }
+  }, [settings]);
+
+  const checkAdminRole = async (userId: string | undefined) => {
+    if (!userId) {
+      setIsAdmin(false);
+      return;
+    }
+
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    setIsAdmin(!!data);
+  };
 
   useEffect(() => {
     loadProducts();
@@ -245,6 +295,133 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
     }
   };
 
+  const toggleEditMode = () => {
+    if (!isAdmin) {
+      toast.error("غير مصرح لك بالدخول لوضع التعديل");
+      return;
+    }
+    setEditMode(!editMode);
+    if (!editMode) {
+      toast.info("وضع التعديل نشط - اضغط على أي نص لتعديله");
+    }
+  };
+
+  const handleTextChange = (key: keyof typeof editedTexts, value: string, color?: string) => {
+    setEditedTexts(prev => ({
+      ...prev,
+      [key]: value,
+      ...(color ? { [`${key}Color`]: color } : {})
+    }));
+  };
+
+  const handleColorChange = (colors: typeof editedColors) => {
+    setEditedColors(colors);
+    // Apply colors immediately to CSS variables
+    const root = document.documentElement;
+    root.style.setProperty("--primary", colors.primary);
+    root.style.setProperty("--secondary", colors.secondary);
+    root.style.setProperty("--accent", colors.accent);
+    toast.success("تم تطبيق الألوان - احفظ التغييرات لجعلها دائمة");
+  };
+
+  const saveEditChanges = async () => {
+    try {
+      // Delete existing drafts
+      await supabase
+        .from("site_settings")
+        .delete()
+        .eq("is_draft", true);
+
+      // Save home texts as draft
+      await supabase
+        .from("site_settings")
+        .insert({
+          key: "home_texts",
+          value: {
+            hero_title: editedTexts.heroTitle,
+            hero_description: editedTexts.heroDescription,
+            hero_title_color: editedTexts.heroTitleColor,
+            hero_desc_color: editedTexts.heroDescColor,
+          },
+          is_draft: true,
+        });
+
+      // Save colors as draft
+      await supabase
+        .from("site_settings")
+        .insert({
+          key: "colors",
+          value: editedColors,
+          is_draft: true,
+        });
+
+      // Publish immediately
+      await supabase
+        .from("site_settings")
+        .delete()
+        .eq("is_draft", false)
+        .in("key", ["home_texts", "colors"]);
+
+      await supabase
+        .from("site_settings")
+        .insert([
+          {
+            key: "home_texts",
+            value: {
+              hero_title: editedTexts.heroTitle,
+              hero_description: editedTexts.heroDescription,
+              hero_title_color: editedTexts.heroTitleColor,
+              hero_desc_color: editedTexts.heroDescColor,
+            },
+            is_draft: false,
+          },
+          {
+            key: "colors",
+            value: editedColors,
+            is_draft: false,
+          },
+        ]);
+
+      toast.success("تم حفظ التغييرات ونشرها بنجاح!");
+      setEditMode(false);
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      toast.error("فشل حفظ التغييرات");
+    }
+  };
+
+  const cancelEdit = () => {
+    if (settings) {
+      setEditedTexts({
+        heroTitle: settings.home_texts?.hero_title || "",
+        heroDescription: settings.home_texts?.hero_description || "",
+        heroTitleColor: "",
+        heroDescColor: "",
+      });
+      setEditedColors({
+        primary: settings.colors?.primary || "262.1 83.3% 57.8%",
+        secondary: settings.colors?.secondary || "220 14.3% 95.9%",
+        accent: settings.colors?.accent || "220 14.3% 95.9%",
+      });
+      // Reset CSS variables
+      const root = document.documentElement;
+      root.style.setProperty("--primary", settings.colors?.primary);
+      root.style.setProperty("--secondary", settings.colors?.secondary);
+      root.style.setProperty("--accent", settings.colors?.accent);
+    }
+    setEditMode(false);
+    toast.info("تم إلغاء التغييرات");
+  };
+
+  const previewChanges = () => {
+    setEditMode(false);
+    toast.info("وضع المعاينة - اضغط زر التعديل للعودة لوضع التحرير");
+  };
+
   const categories: Category[] = [
     "الكل",
     "دفعة الظلام",
@@ -258,6 +435,31 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
     <div className="min-h-screen bg-background">
       <Header />
       <NotificationPrompt />
+
+      {/* Edit Mode Button - Admin Only */}
+      {isAdmin && !editMode && (
+        <div className="fixed bottom-6 left-6 z-50">
+          <Button
+            onClick={toggleEditMode}
+            size="lg"
+            className="shadow-2xl hover:scale-110 transition-transform gap-2"
+          >
+            <Edit className="w-5 h-5" />
+            وضع التعديل
+          </Button>
+        </div>
+      )}
+
+      {/* Edit Mode Toolbar */}
+      {editMode && (
+        <EditModeToolbar
+          onSave={saveEditChanges}
+          onCancel={cancelEdit}
+          onPreview={previewChanges}
+          onColorChange={handleColorChange}
+          colors={editedColors}
+        />
+      )}
 
       <main className="container mx-auto px-4 py-12">
         {/* بانر العروض */}
@@ -294,12 +496,23 @@ ${orderData.notes ? `ملاحظات: ${orderData.notes}` : ''}
         {/* القسم الرئيسي */}
         <section className="text-center space-y-6 sm:space-y-8 mb-12 sm:mb-16 animate-fade-in-up px-4">
           <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              {settings?.home_texts?.hero_title || "أهلا وسهلا بك في Veyron، العلامة الفاخرة للهوديز الشتوية"}
-            </h1>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
-              {settings?.home_texts?.hero_description || "الخامات ميلتون قطن سفنجي بميزة معالجة ضد الوبر وبالنسبة للطباعة فهي من أعلى الطباعات نوع ديجيتال عالي الجودة متاح التصاميم المخصصة"}
-            </p>
+            <EditableText
+              value={editedTexts.heroTitle || settings?.home_texts?.hero_title || "أهلا وسهلا بك في Veyron، العلامة الفاخرة للهوديز الشتوية"}
+              onChange={(value, color) => handleTextChange("heroTitle", value, color)}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
+              color={editedTexts.heroTitleColor}
+              editMode={editMode}
+              as="h1"
+            />
+            <EditableText
+              value={editedTexts.heroDescription || settings?.home_texts?.hero_description || "الخامات ميلتون قطن سفنجي بميزة معالجة ضد الوبر وبالنسبة للطباعة فهي من أعلى الطباعات نوع ديجيتال عالي الجودة متاح التصاميم المخصصة"}
+              onChange={(value, color) => handleTextChange("heroDescription", value, color)}
+              multiline
+              className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed"
+              color={editedTexts.heroDescColor}
+              editMode={editMode}
+              as="p"
+            />
           </div>
         </section>
 
